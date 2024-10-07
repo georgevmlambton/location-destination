@@ -1,0 +1,7 @@
+{
+  "editor.tabSize": 2,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "prettier.endOfLine": "lf",
+  "files.eol": "\n",
+  "javascript.preferences.importModuleSpecifierEnding": "js"
+}

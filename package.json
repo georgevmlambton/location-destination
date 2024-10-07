@@ -1,0 +1,19 @@
+{
+  "name": "location-destination",
+  "engines": {
+    "node": "'^18.18.0 || ^20.9.0 || >=21.1.0'"
+  },
+  "workspaces": [
+    "apps/web",
+    "app/server"
+  ],
+  "scripts": {
+    "prepare": "husky install",
+    "lint-staged": "lint-staged",
+    "start:web": "npm run -w apps/web dev"
+  },
+  "devDependencies": {
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10"
+  }
+}

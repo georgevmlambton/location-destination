@@ -1,0 +1,4 @@
+{
+  "apps/web/*.{js,json,html,css,prettierrc,lintstagedrc}": "npm run -w apps/web format",
+  "apps/web/*": "npm run -w apps/web lint"
+}
