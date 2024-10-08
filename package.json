@@ -5,14 +5,17 @@
   },
   "workspaces": [
     "apps/web",
-    "app/server"
+    "apps/server"
   ],
   "scripts": {
     "prepare": "husky install",
     "lint-staged": "lint-staged",
-    "start:web": "npm run -w apps/web dev"
+    "start:web": "npm run -w apps/web dev",
+    "start:server": "npm run -w apps/server start",
+    "start": "concurrently \"npm run start:web\" \"npm run start:server\""
   },
   "devDependencies": {
+    "concurrently": "^9.0.1",
     "husky": "^9.1.6",
     "lint-staged": "^15.2.10"
   }
