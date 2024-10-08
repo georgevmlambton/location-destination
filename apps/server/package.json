@@ -10,7 +10,9 @@
   },
   "license": "UNLICENSE",
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.21.0",
+    "firebase-admin": "^12.6.0",
     "mongoose": "^8.7.0",
     "nodemon": "^3.1.7",
     "ts-node": "^10.9.2"
