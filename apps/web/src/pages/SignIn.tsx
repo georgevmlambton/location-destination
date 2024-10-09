@@ -11,18 +11,11 @@ const validationSchema = yup.object().shape({
     .string()
     .email('Must be a valid email')
     .required('Email is required'),
-  password: yup
-    .string()
-    .min(8, 'Must be at least 8 characters')
-    .required('Password is required'),
-  verifyPassword: yup
-    .string()
-    .oneOf([yup.ref('password')], 'Passwords do not match')
-    .required('Verify your password'),
+  password: yup.string().required('Password is required'),
 });
 
-export function Register() {
-  const { register } = useContext(UserContext);
+export function SignIn() {
+  const { signIn } = useContext(UserContext);
   const toast = useContext(ToastContext);
 
   async function submit(
@@ -32,13 +25,10 @@ export function Register() {
   ) {
     try {
       setSubmitting(true);
-      await register(email, password);
+      await signIn(email, password);
     } catch (e) {
-      if (
-        e instanceof FirebaseError &&
-        e.code === 'auth/email-already-in-use'
-      ) {
-        toast.show('Email Already in Use', 'danger');
+      if (e instanceof FirebaseError && e.code == 'auth/invalid-credential') {
+        toast.show('Invalid Email/Password', 'danger');
       } else if (e instanceof Error) {
         toast.show(e.message, 'danger');
       }
@@ -67,7 +57,7 @@ export function Register() {
             <h1 className="ms-3">EcoRide</h1>
           </div>
           <Formik
-            initialValues={{ email: '', password: '', verifyPassword: '' }}
+            initialValues={{ email: '', password: '' }}
             validationSchema={validationSchema}
             onSubmit={(values, { setSubmitting }) => {
               setSubmitting(true);
@@ -106,37 +96,19 @@ export function Register() {
                     component="p"
                   />
                 </div>
-                <div className="mb-3">
-                  <label
-                    htmlFor="verify-password"
-                    className="form-label ms-2 fs-5"
-                  >
-                    Verify Password
-                  </label>
-                  <Field
-                    type="password"
-                    className={`form-control rounded-pill py-2 fs-5 ${touched.verifyPassword && errors.verifyPassword ? 'border-danger' : 'border-secondary'}`}
-                    name="verifyPassword"
-                  />
-                  <ErrorMessage
-                    name="verifyPassword"
-                    className="text-danger ms-2"
-                    component="p"
-                  />
-                </div>
                 <button
                   type="submit"
                   className="btn btn-success rounded-pill w-100 py-2 mt-5 fs-4"
                   style={{ backgroundColor: '#00634B', border: 'none' }}
                   disabled={isSubmitting}
                 >
-                  Register
+                  Sign In
                 </button>
               </Form>
             )}
           </Formik>
-          <Link to="/sign-in" className="d-block mt-3 text-center">
-            Already have an account? Click here to sign in
+          <Link to="/register" className="d-block mt-3 text-center">
+            Don't have an account? Click here to register
           </Link>
         </div>
       </div>
