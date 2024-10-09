@@ -4,6 +4,7 @@ import { AuthenticatedRoute } from './components/AuthenticatedRoute';
 import { UserProvider } from './providers/user-provider';
 import { UnauthenticatedRoute } from './components/UnauthenticatedRoute';
 import { Register } from './pages/Register';
+import { ToastProvider } from './providers/toast-provider';
 
 const router = createBrowserRouter([
   {
@@ -18,8 +19,10 @@ const router = createBrowserRouter([
 
 export default function App() {
   return (
-    <UserProvider>
-      <RouterProvider router={router} />
-    </UserProvider>
+    <ToastProvider>
+      <UserProvider>
+        <RouterProvider router={router} />
+      </UserProvider>
+    </ToastProvider>
   );
 }

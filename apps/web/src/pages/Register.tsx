@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import * as yup from 'yup';
 import { UserContext } from '../providers/user-provider';
 import { FirebaseError } from 'firebase/app';
+import { ToastContext } from '../providers/toast-provider';
 
 const validationSchema = yup.object().shape({
   email: yup
@@ -22,6 +23,7 @@ const validationSchema = yup.object().shape({
 
 export function Register() {
   const { register } = useContext(UserContext);
+  const toast = useContext(ToastContext);
 
   async function submit(
     email: string,
@@ -36,9 +38,9 @@ export function Register() {
         e instanceof FirebaseError &&
         e.code === 'auth/email-already-in-use'
       ) {
-        console.error('Email Already in Use');
-      } else {
-        console.error(e);
+        toast.show('Email Already in Use', 'danger');
+      } else if (e instanceof Error) {
+        toast.show(e.message, 'danger');
       }
 
       setSubmitting(false);
