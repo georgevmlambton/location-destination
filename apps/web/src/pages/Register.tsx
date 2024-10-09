@@ -1,22 +1,49 @@
 import { ErrorMessage, Field, Form, Formik } from 'formik';
+import { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import * as yup from 'yup';
+import { UserContext } from '../providers/user-provider';
+import { FirebaseError } from 'firebase/app';
+
+const validationSchema = yup.object().shape({
+  email: yup
+    .string()
+    .email('Must be a valid email')
+    .required('Email is required'),
+  password: yup
+    .string()
+    .min(8, 'Must be at least 8 characters')
+    .required('Password is required'),
+  verifyPassword: yup
+    .string()
+    .oneOf([yup.ref('password')], 'Passwords do not match')
+    .required('Verify your password'),
+});
 
 export function Register() {
-  const validationSchema = yup.object().shape({
-    email: yup
-      .string()
-      .email('Must be a valid email')
-      .required('Email is required'),
-    password: yup
-      .string()
-      .min(8, 'Must be at least 8 characters')
-      .required('Password is required'),
-    verifyPassword: yup
-      .string()
-      .oneOf([yup.ref('password')], 'Passwords do not match')
-      .required('Verify your password'),
-  });
+  const { register } = useContext(UserContext);
+
+  async function submit(
+    email: string,
+    password: string,
+    setSubmitting: (isSubmitting: boolean) => void
+  ) {
+    try {
+      setSubmitting(true);
+      await register(email, password);
+    } catch (e) {
+      if (
+        e instanceof FirebaseError &&
+        e.code === 'auth/email-already-in-use'
+      ) {
+        console.error('Email Already in Use');
+      } else {
+        console.error(e);
+      }
+
+      setSubmitting(false);
+    }
+  }
 
   return (
     <div
@@ -40,9 +67,12 @@ export function Register() {
           <Formik
             initialValues={{ email: '', password: '', verifyPassword: '' }}
             validationSchema={validationSchema}
-            onSubmit={() => {}}
+            onSubmit={(values, { setSubmitting }) => {
+              setSubmitting(true);
+              submit(values.email, values.password, setSubmitting);
+            }}
           >
-            {({ errors }) => (
+            {({ isSubmitting, errors, touched }) => (
               <Form className="mt-4 text-start">
                 <div className="mb-3">
                   <label htmlFor="email" className="form-label ms-2 fs-5">
@@ -50,7 +80,7 @@ export function Register() {
                   </label>
                   <Field
                     type="email"
-                    className={`form-control rounded-pill py-2 fs-5 ${errors.email ? 'border-danger' : 'border-secondary'}`}
+                    className={`form-control rounded-pill py-2 fs-5 ${touched.email && errors.email ? 'border-danger' : 'border-secondary'}`}
                     name="email"
                   />
                   <ErrorMessage
@@ -65,7 +95,7 @@ export function Register() {
                   </label>
                   <Field
                     type="password"
-                    className={`form-control rounded-pill py-2 fs-5 ${errors.password ? 'border-danger' : 'border-secondary'}`}
+                    className={`form-control rounded-pill py-2 fs-5 ${touched.password && errors.password ? 'border-danger' : 'border-secondary'}`}
                     name="password"
                   />
                   <ErrorMessage
@@ -83,7 +113,7 @@ export function Register() {
                   </label>
                   <Field
                     type="password"
-                    className={`form-control rounded-pill py-2 fs-5 ${errors.verifyPassword ? 'border-danger' : 'border-secondary'}`}
+                    className={`form-control rounded-pill py-2 fs-5 ${touched.verifyPassword && errors.verifyPassword ? 'border-danger' : 'border-secondary'}`}
                     name="verifyPassword"
                   />
                   <ErrorMessage
@@ -96,6 +126,7 @@ export function Register() {
                   type="submit"
                   className="btn btn-success rounded-pill w-100 py-2 mt-5 fs-4"
                   style={{ backgroundColor: '#00634B', border: 'none' }}
+                  disabled={isSubmitting}
                 >
                   Register
                 </button>
