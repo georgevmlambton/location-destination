@@ -1,6 +1,23 @@
+import { ErrorMessage, Field, Form, Formik } from 'formik';
 import { Link } from 'react-router-dom';
+import * as yup from 'yup';
 
 export function Register() {
+  const validationSchema = yup.object().shape({
+    email: yup
+      .string()
+      .email('Must be a valid email')
+      .required('Email is required'),
+    password: yup
+      .string()
+      .min(8, 'Must be at least 8 characters')
+      .required('Password is required'),
+    verifyPassword: yup
+      .string()
+      .oneOf([yup.ref('password')], 'Passwords do not match')
+      .required('Verify your password'),
+  });
+
   return (
     <div
       style={{
@@ -20,51 +37,71 @@ export function Register() {
             ></div>
             <h1 className="ms-3">EcoRide</h1>
           </div>
-          <form className="mt-4 text-start">
-            <div className="mb-3">
-              <label htmlFor="email" className="form-label ms-2 fs-5">
-                Email
-              </label>
-              <input
-                type="email"
-                className="form-control rounded-pill py-2 fs-5"
-                id="email"
-                placeholder="Enter your email"
-                style={{ borderColor: '#929292' }}
-              />
-            </div>
-            <div className="mb-3">
-              <label htmlFor="password" className="form-label ms-2 fs-5">
-                Password
-              </label>
-              <input
-                type="password"
-                className="form-control rounded-pill py-2 fs-5"
-                id="password"
-                placeholder="Enter your password"
-                style={{ borderColor: '#929292' }}
-              />
-            </div>
-            <div className="mb-3">
-              <label htmlFor="verify-password" className="form-label ms-2 fs-5">
-                Verify Password
-              </label>
-              <input
-                type="password"
-                className="form-control rounded-pill py-2 fs-5"
-                id="verify-password"
-                placeholder="Verify your password"
-                style={{ borderColor: '#929292' }}
-              />
-            </div>
-            <button
-              type="submit"
-              className="btn btn-success rounded-pill w-100 py-2 mt-5 fs-4"
-              style={{ backgroundColor: '#00634B', border: 'none' }}
-            >
-              Register
-            </button>
-          </form>
+          <Formik
+            initialValues={{ email: '', password: '', verifyPassword: '' }}
+            validationSchema={validationSchema}
+            onSubmit={() => {}}
+          >
+            {({ errors }) => (
+              <Form className="mt-4 text-start">
+                <div className="mb-3">
+                  <label htmlFor="email" className="form-label ms-2 fs-5">
+                    Email
+                  </label>
+                  <Field
+                    type="email"
+                    className={`form-control rounded-pill py-2 fs-5 ${errors.email ? 'border-danger' : 'border-secondary'}`}
+                    name="email"
+                  />
+                  <ErrorMessage
+                    name="email"
+                    className="text-danger ms-2"
+                    component="p"
+                  />
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="password" className="form-label ms-2 fs-5">
+                    Password
+                  </label>
+                  <Field
+                    type="password"
+                    className={`form-control rounded-pill py-2 fs-5 ${errors.password ? 'border-danger' : 'border-secondary'}`}
+                    name="password"
+                  />
+                  <ErrorMessage
+                    name="password"
+                    className="text-danger ms-2"
+                    component="p"
+                  />
+                </div>
+                <div className="mb-3">
+                  <label
+                    htmlFor="verify-password"
+                    className="form-label ms-2 fs-5"
+                  >
+                    Verify Password
+                  </label>
+                  <Field
+                    type="password"
+                    className={`form-control rounded-pill py-2 fs-5 ${errors.verifyPassword ? 'border-danger' : 'border-secondary'}`}
+                    name="verifyPassword"
+                  />
+                  <ErrorMessage
+                    name="verifyPassword"
+                    className="text-danger ms-2"
+                    component="p"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="btn btn-success rounded-pill w-100 py-2 mt-5 fs-4"
+                  style={{ backgroundColor: '#00634B', border: 'none' }}
+                >
+                  Register
+                </button>
+              </Form>
+            )}
+          </Formik>
           <Link to="/login" className="d-block mt-3 text-center">
             Already have an account? Click here to sign in
           </Link>
