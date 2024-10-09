@@ -1,9 +1,10 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Home from './pages/Home';
-import LoginTest from './pages/LoginTest';
 import { AuthenticatedRoute } from './components/AuthenticatedRoute';
 import { UserProvider } from './providers/user-provider';
 import { UnauthenticatedRoute } from './components/UnauthenticatedRoute';
+import { Register } from './pages/Register';
+import { ToastProvider } from './providers/toast-provider';
 
 const router = createBrowserRouter([
   {
@@ -11,15 +12,17 @@ const router = createBrowserRouter([
     element: <AuthenticatedRoute element={<Home />} />,
   },
   {
-    path: '/login-test',
-    element: <UnauthenticatedRoute element={<LoginTest />} />,
+    path: '/register',
+    element: <UnauthenticatedRoute element={<Register />} />,
   },
 ]);
 
 export default function App() {
   return (
-    <UserProvider>
-      <RouterProvider router={router} />
-    </UserProvider>
+    <ToastProvider>
+      <UserProvider>
+        <RouterProvider router={router} />
+      </UserProvider>
+    </ToastProvider>
   );
 }
