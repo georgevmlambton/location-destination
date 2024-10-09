@@ -5,6 +5,7 @@ import { UserProvider } from './providers/user-provider';
 import { UnauthenticatedRoute } from './components/UnauthenticatedRoute';
 import { Register } from './pages/Register';
 import { ToastProvider } from './providers/toast-provider';
+import VerifyEmail from './pages/VerifyEmail';
 
 const router = createBrowserRouter([
   {
@@ -14,6 +15,10 @@ const router = createBrowserRouter([
   {
     path: '/register',
     element: <UnauthenticatedRoute element={<Register />} />,
+  },
+  {
+    path: '/verify-email',
+    element: <AuthenticatedRoute element={<VerifyEmail />} />,
   },
 ]);
 
