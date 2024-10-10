@@ -7,7 +7,7 @@ export function AuthenticatedRoute({ element }: { element: JSX.Element }) {
   const location = useLocation();
 
   return !user ? (
-    <Navigate to="/register" />
+    <Navigate to="/sign-in" />
   ) : !user.emailVerified && location.pathname !== '/verify-email' ? (
     <Navigate to="/verify-email" />
   ) : (

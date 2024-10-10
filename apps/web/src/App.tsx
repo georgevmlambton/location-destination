@@ -5,6 +5,7 @@ import { UserProvider } from './providers/user-provider';
 import { UnauthenticatedRoute } from './components/UnauthenticatedRoute';
 import { Register } from './pages/Register';
 import { ToastProvider } from './providers/toast-provider';
+import { SignIn } from './pages/SignIn';
 import VerifyEmail from './pages/VerifyEmail';
 
 const router = createBrowserRouter([
@@ -15,6 +16,10 @@ const router = createBrowserRouter([
   {
     path: '/register',
     element: <UnauthenticatedRoute element={<Register />} />,
+  },
+  {
+    path: '/sign-in',
+    element: <UnauthenticatedRoute element={<SignIn />} />,
   },
   {
     path: '/verify-email',
