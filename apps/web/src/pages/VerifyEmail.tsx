@@ -2,12 +2,29 @@ import { useContext, useState } from 'react';
 import envelopeIcon from '../assets/envelope-paper-fill.svg';
 import { UserContext } from '../providers/user-provider';
 import { ToastContext } from '../providers/toast-provider';
+import { FirebaseError } from 'firebase/app';
 
 const VerifyEmail = () => {
   const { sendVerifyEmail, signOut } = useContext(UserContext);
   const toast = useContext(ToastContext);
 
   const [sendingEmail, setSendingEmail] = useState(false);
+
+  async function resend() {
+    setSendingEmail(true);
+
+    try {
+      await sendVerifyEmail();
+    } catch (e) {
+      if (e instanceof FirebaseError && e.code === 'auth/too-many-requests') {
+        toast.show('Too many requests. Try again after some time', 'danger');
+      } else {
+        toast.show(e.message, 'danger');
+      }
+    }
+
+    setSendingEmail(false);
+  }
 
   return (
     <div className="d-flex justify-content-center align-items-center vh-100">
@@ -24,12 +41,7 @@ const VerifyEmail = () => {
           email to verify your account.
         </p>
         <button
-          onClick={async () => {
-            setSendingEmail(true);
-            sendVerifyEmail()
-              .catch((e) => toast.show(e.message, 'danger'))
-              .finally(() => setSendingEmail(false));
-          }}
+          onClick={resend}
           className="btn btn-success rounded-pill w-100 py-2 mt-5 fs-4"
           style={{ backgroundColor: '#00634B', border: 'none' }}
           disabled={sendingEmail}

@@ -3,6 +3,8 @@ import {
   User,
   sendEmailVerification,
   signInWithEmailAndPassword,
+  applyActionCode,
+  reload,
 } from 'firebase/auth';
 import {
   createContext,
@@ -21,6 +23,7 @@ type UserContextType = {
   signIn: (email: string, password: string) => Promise<User>;
   signOut: () => Promise<void>;
   sendVerifyEmail: () => Promise<void>;
+  verifyEmail: (code: string) => Promise<void>;
 };
 
 const initialUserContext: UserContextType = {
@@ -34,6 +37,9 @@ const initialUserContext: UserContextType = {
     throw new Error('Missing provider');
   },
   sendVerifyEmail() {
+    throw new Error('Missing provider');
+  },
+  verifyEmail() {
     throw new Error('Missing provider');
   },
 };
@@ -77,6 +83,16 @@ export function UserProvider({ children }: { children: ReactNode }) {
     toast.show('Verification email sent', 'success');
   }, [user, toast]);
 
+  const verifyEmail = useCallback(
+    async (code: string) => {
+      await applyActionCode(auth, code);
+      if (user) {
+        await reload(user);
+      }
+    },
+    [user]
+  );
+
   useEffect(() => {
     const onUserChange = (user: User | null) => {
       setUser(user || undefined);
@@ -88,7 +104,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   return (
     <UserContext.Provider
-      value={{ user, register, signIn, signOut, sendVerifyEmail }}
+      value={{ user, register, signIn, signOut, sendVerifyEmail, verifyEmail }}
     >
       {initialized && children}
     </UserContext.Provider>
