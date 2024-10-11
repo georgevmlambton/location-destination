@@ -7,9 +7,8 @@ import { Register } from './pages/Register';
 import { ToastProvider } from './providers/toast-provider';
 import { SignIn } from './pages/SignIn';
 import VerifyEmail from './pages/VerifyEmail';
-import { ConfirmEmail } from './pages/ConfirmEmail';
 import { ForgotPassword } from './pages/ForgotPassword';
-import { ResetPassword } from './pages/ResetPassword';
+import { Callback } from './pages/Callback';
 
 const router = createBrowserRouter([
   {
@@ -29,16 +28,12 @@ const router = createBrowserRouter([
     element: <AuthenticatedRoute element={<VerifyEmail />} />,
   },
   {
-    path: '/verify-email/confirm',
-    element: <ConfirmEmail />,
-  },
-  {
     path: '/forgot-password',
     element: <ForgotPassword />,
   },
   {
-    path: '/reset-password',
-    element: <ResetPassword />,
+    path: '/callback',
+    element: <Callback />,
   },
 ]);
 
