@@ -18,13 +18,8 @@ export function SignIn() {
   const { signIn } = useContext(UserContext);
   const toast = useContext(ToastContext);
 
-  async function submit(
-    email: string,
-    password: string,
-    setSubmitting: (isSubmitting: boolean) => void
-  ) {
+  async function submit(email: string, password: string) {
     try {
-      setSubmitting(true);
       await signIn(email, password);
     } catch (e) {
       if (e instanceof FirebaseError && e.code == 'auth/invalid-credential') {
@@ -32,8 +27,6 @@ export function SignIn() {
       } else if (e instanceof Error) {
         toast.show(e.message, 'danger');
       }
-
-      setSubmitting(false);
     }
   }
 
@@ -59,9 +52,10 @@ export function SignIn() {
           <Formik
             initialValues={{ email: '', password: '' }}
             validationSchema={validationSchema}
-            onSubmit={(values, { setSubmitting }) => {
+            onSubmit={async (values, { setSubmitting }) => {
               setSubmitting(true);
-              submit(values.email, values.password, setSubmitting);
+              await submit(values.email, values.password);
+              setSubmitting(false);
             }}
           >
             {({ isSubmitting, errors, touched }) => (
@@ -96,6 +90,9 @@ export function SignIn() {
                     component="p"
                   />
                 </div>
+                <Link to="/forgot-password" className="ms-2">
+                  Forgot password
+                </Link>
                 <button
                   type="submit"
                   className="btn btn-success rounded-pill w-100 py-2 mt-5 fs-4"
