@@ -1,11 +1,5 @@
-import {
-  createUserWithEmailAndPassword,
-  User,
-  sendEmailVerification,
-  signInWithEmailAndPassword,
-  applyActionCode,
-  reload,
-} from 'firebase/auth';
+import { User } from 'firebase/auth';
+import * as firebase from 'firebase/auth';
 import {
   createContext,
   ReactNode,
@@ -24,6 +18,9 @@ type UserContextType = {
   signOut: () => Promise<void>;
   sendVerifyEmail: () => Promise<void>;
   verifyEmail: (code: string) => Promise<void>;
+  sendPasswordResetEmail: (email: string) => Promise<void>;
+  resetPassword: (code: string, newPassword: string) => Promise<void>;
+  verifyPasswordResetCode: (code: string) => Promise<boolean>;
 };
 
 const initialUserContext: UserContextType = {
@@ -42,6 +39,15 @@ const initialUserContext: UserContextType = {
   verifyEmail() {
     throw new Error('Missing provider');
   },
+  sendPasswordResetEmail() {
+    throw new Error('Missing provider');
+  },
+  verifyPasswordResetCode() {
+    throw new Error('Missing provider');
+  },
+  resetPassword() {
+    throw new Error('Missing provider');
+  },
 };
 
 export const UserContext = createContext(initialUserContext);
@@ -53,18 +59,22 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | undefined>(undefined);
 
   const register = useCallback(async (email: string, password: string) => {
-    const credential = await createUserWithEmailAndPassword(
+    const credential = await firebase.createUserWithEmailAndPassword(
       auth,
       email,
       password
     );
-    await sendEmailVerification(credential.user);
+    await firebase.sendEmailVerification(credential.user);
     setUser(credential.user);
     return credential.user;
   }, []);
 
   const signIn = useCallback(async (email: string, password: string) => {
-    const credential = await signInWithEmailAndPassword(auth, email, password);
+    const credential = await firebase.signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
     setUser(credential.user);
     return credential.user;
   }, []);
@@ -78,19 +88,39 @@ export function UserProvider({ children }: { children: ReactNode }) {
       throw new Error('Not logged in');
     }
 
-    await sendEmailVerification(user);
+    await firebase.sendEmailVerification(user);
 
     toast.show('Verification email sent', 'success');
   }, [user, toast]);
 
   const verifyEmail = useCallback(
     async (code: string) => {
-      await applyActionCode(auth, code);
+      await firebase.applyActionCode(auth, code);
       if (user) {
-        await reload(user);
+        await firebase.reload(user);
       }
     },
     [user]
+  );
+
+  const sendPasswordResetEmail = useCallback(async (email: string) => {
+    await firebase.sendPasswordResetEmail(auth, email);
+  }, []);
+
+  const verifyPasswordResetCode = useCallback(async (code: string) => {
+    try {
+      await firebase.verifyPasswordResetCode(auth, code);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }, []);
+
+  const resetPassword = useCallback(
+    async (code: string, newPassword: string) => {
+      await firebase.confirmPasswordReset(auth, code, newPassword);
+    },
+    []
   );
 
   useEffect(() => {
@@ -104,7 +134,17 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   return (
     <UserContext.Provider
-      value={{ user, register, signIn, signOut, sendVerifyEmail, verifyEmail }}
+      value={{
+        user,
+        register,
+        signIn,
+        signOut,
+        sendVerifyEmail,
+        verifyEmail,
+        sendPasswordResetEmail,
+        verifyPasswordResetCode,
+        resetPassword,
+      }}
     >
       {initialized && children}
     </UserContext.Provider>

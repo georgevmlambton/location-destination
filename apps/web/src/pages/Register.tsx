@@ -18,7 +18,7 @@ const validationSchema = yup.object().shape({
   verifyPassword: yup
     .string()
     .oneOf([yup.ref('password')], 'Passwords do not match')
-    .required('Verify your password'),
+    .required('Confirm your password'),
 });
 
 export function Register() {
@@ -39,6 +39,11 @@ export function Register() {
         e.code === 'auth/email-already-in-use'
       ) {
         toast.show('Email Already in Use', 'danger');
+      } else if (
+        e instanceof FirebaseError &&
+        e.code === 'auth/weak-password'
+      ) {
+        toast.show('Password is too weak', 'danger');
       } else if (e instanceof Error) {
         toast.show(e.message, 'danger');
       }
@@ -111,7 +116,7 @@ export function Register() {
                     htmlFor="verify-password"
                     className="form-label ms-2 fs-5"
                   >
-                    Verify Password
+                    Confirm Password
                   </label>
                   <Field
                     type="password"
