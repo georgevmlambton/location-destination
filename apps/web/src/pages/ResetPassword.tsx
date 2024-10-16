@@ -97,11 +97,14 @@ export function ResetPassword() {
         )}
         {!done && (
           <div className="col text-center">
+            <div className="d-flex align-items-center justify-content-center mb-1">
+              <img
+                  src="/public/logo.png"
+                  alt="EcoRide Logo"
+                  style={{ width: '60px', height: '60px', borderRadius: '50%' }}
+                />
+            </div>
             <div className="d-flex align-items-center justify-content-center mb-5">
-              <div
-                className="bg-secondary rounded-circle"
-                style={{ width: '60px', height: '60px' }}
-              ></div>
               <h1 className="ms-3">EcoRide</h1>
             </div>
             <Formik
