@@ -4,6 +4,10 @@ import { auth } from './firebase';
 export async function getInstance() {
   const token = await auth.currentUser?.getIdToken();
 
+  if (!token) {
+    auth.signOut().then(() => location.assign('/login'));
+  }
+
   const instance = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
     headers: {
@@ -13,7 +17,7 @@ export async function getInstance() {
 
   instance.interceptors.response.use((response) => {
     if (response.status === 401) {
-      location.assign('/login');
+      auth.signOut().then(() => location.assign('/login'));
     }
 
     return response;

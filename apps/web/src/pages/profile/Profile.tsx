@@ -32,13 +32,18 @@ export function Profile() {
 
   return (
     <div className="w-100 h-100" style={{ background: '#F8F8F8' }}>
-      <div
-        className="p-4 pb-5"
-        style={{
-          backgroundColor: '#00634B',
-        }}
-      >
-        <div className="d-flex justify-content-between">
+      <div className="p-4 pb-5 position-relative overflow-hidden">
+        <div
+          className="position-absolute top-0"
+          style={{
+            backgroundColor: '#00634B',
+            height: '100%',
+            width: '150%',
+            left: '-25%',
+            borderRadius: '0 0 50% 50%',
+          }}
+        />
+        <div className="d-flex justify-content-between position-relative">
           <NavButton
             icon={arrowLeft}
             hidden={!isProfileSetupDone}
@@ -47,7 +52,7 @@ export function Profile() {
           <NavButton icon={boxArrowRight} onClick={signOut} />
         </div>
 
-        <div className="d-flex align-items-end mt-5">
+        <div className="d-flex align-items-end mt-5 position-relative">
           <img
             className="rounded-circle"
             src={personFill}

@@ -18,8 +18,10 @@ export function ProfileField<T>({
 }) {
   return (
     <div
-      className={`border px-3 py-4 bg-white ${touched[name] && errors[name] ? 'border-danger' : 'border-secondary-subtle'}`}
-      style={{ borderRadius: '25px' }}
+      className={`border shadow px-3 py-4 bg-white ${touched[name] && errors[name] ? 'border-danger' : 'border-secondary-subtle'}`}
+      style={{
+        borderRadius: '25px',
+      }}
     >
       <label className="mb-4">
         {label} {required && <span className="text-danger">*</span>}
