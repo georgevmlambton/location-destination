@@ -11,6 +11,7 @@ import { NavButton } from '../../components/nav/NavButton';
 import { ProfileField } from './ProfileField';
 import { useContext } from 'react';
 import { UserContext } from '../../providers/user-provider';
+import { useNavigate } from 'react-router-dom';
 
 const validationSchema = yup.object({
   name: yup.string().required('Name is required'),
@@ -21,7 +22,8 @@ function isRequiredFieldsFilled(values: { name: string | undefined }) {
 }
 
 export function Profile() {
-  const { profile, isProfileSetupDone, updateProfile } =
+  const navigate = useNavigate();
+  const { profile, isProfileSetupDone, updateProfile, signOut } =
     useContext(UserContext);
 
   async function submit(values: { name: string | undefined }) {
@@ -37,8 +39,12 @@ export function Profile() {
         }}
       >
         <div className="d-flex justify-content-between">
-          <NavButton icon={arrowLeft} hidden={!isProfileSetupDone} />
-          <NavButton icon={boxArrowRight} />
+          <NavButton
+            icon={arrowLeft}
+            hidden={!isProfileSetupDone}
+            onClick={() => navigate('/')}
+          />
+          <NavButton icon={boxArrowRight} onClick={signOut} />
         </div>
 
         <div className="d-flex align-items-end mt-5">

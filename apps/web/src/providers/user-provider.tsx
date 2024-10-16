@@ -16,6 +16,7 @@ import {
   ProfileResponse,
 } from '@location-destination/types/src/requests/profile';
 import { getInstance } from '../axios';
+import { Button, Modal } from 'react-bootstrap';
 
 type UserContextType = {
   user?: User;
@@ -23,7 +24,7 @@ type UserContextType = {
   isProfileSetupDone: boolean;
   register: (email: string, password: string) => Promise<User>;
   signIn: (email: string, password: string) => Promise<User>;
-  signOut: () => Promise<void>;
+  signOut: () => void;
   sendVerifyEmail: () => Promise<void>;
   verifyEmail: (code: string) => Promise<void>;
   sendPasswordResetEmail: (email: string) => Promise<void>;
@@ -69,6 +70,7 @@ export const UserContext = createContext(initialUserContext);
 export function UserProvider({ children }: { children: ReactNode }) {
   const toast = useContext(ToastContext);
 
+  const [showSignOut, setShowSignOut] = useState(false);
   const [initialized, setInitialized] = useState(false);
   const [user, setUser] = useState<User | undefined>(undefined);
   const [profile, setProfile] = useState<ProfileResponse | undefined>(
@@ -182,7 +184,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         isProfileSetupDone,
         register,
         signIn,
-        signOut,
+        signOut: () => setShowSignOut(true),
         sendVerifyEmail,
         verifyEmail,
         sendPasswordResetEmail,
@@ -192,6 +194,39 @@ export function UserProvider({ children }: { children: ReactNode }) {
       }}
     >
       {initialized && children}
+
+      {showSignOut && (
+        <Modal
+          show
+          onHide={() => setShowSignOut(false)}
+          keyboard={false}
+          style={{ marginTop: '62px' }}
+        >
+          <Modal.Header closeButton className="border-0">
+            <Modal.Title>Sign Out</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>Are you sure you want to sign out?</Modal.Body>
+          <Modal.Footer className="border-0">
+            <Button
+              className="rounded-pill"
+              variant="outline-dark"
+              onClick={() => setShowSignOut(false)}
+            >
+              Close
+            </Button>
+            <Button
+              className="rounded-pill"
+              variant="danger"
+              onClick={() => {
+                signOut();
+                setShowSignOut(false);
+              }}
+            >
+              Sign Out
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      )}
     </UserContext.Provider>
   );
 }

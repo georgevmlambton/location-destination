@@ -55,7 +55,6 @@ export function SignIn() {
             onSubmit={async (values, { setSubmitting }) => {
               setSubmitting(true);
               await submit(values.email, values.password);
-              setSubmitting(false);
             }}
           >
             {({ isSubmitting, errors, touched }) => (
