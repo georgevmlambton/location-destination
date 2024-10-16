@@ -1,4 +1,3 @@
-import { useContext, useEffect, useMemo, useState } from 'react';
 import arrowLeft from '../../assets/arrow-left.svg';
 import boxArrowRight from '../../assets/box-arrow-right.svg';
 import personFill from '../../assets/person-fill.svg';
@@ -6,60 +5,28 @@ import check2 from '../../assets/check2.svg';
 import x from '../../assets/x.svg';
 import { Form, Formik } from 'formik';
 import * as yup from 'yup';
-import { getInstance } from '../../axios';
-import {
-  ProfileResponse,
-  ProfilePatchRequest,
-} from '@location-destination/types/src/requests/profile';
 import { Toast, ToastContainer } from 'react-bootstrap';
-import { ToastContext } from '../../providers/toast-provider';
 import { TextField } from '../../components/form/TextField';
 import { NavButton } from '../../components/nav/NavButton';
 import { ProfileField } from './ProfileField';
+import { useContext } from 'react';
+import { UserContext } from '../../providers/user-provider';
 
 const validationSchema = yup.object({
   name: yup.string().required('Name is required'),
 });
-
-function isProfileSetupDone(profile: ProfileResponse) {
-  return !!profile.name;
-}
 
 function isRequiredFieldsFilled(values: { name: string | undefined }) {
   return !!values.name;
 }
 
 export function Profile() {
-  const [profile, setProfile] = useState<ProfileResponse | null>(null);
-  const canExit = useMemo(
-    () => profile && isProfileSetupDone(profile),
-    [profile]
-  );
-
-  const toast = useContext(ToastContext);
+  const { profile, isProfileSetupDone, updateProfile } =
+    useContext(UserContext);
 
   async function submit(values: { name: string | undefined }) {
-    const axios = await getInstance();
-    const req: ProfilePatchRequest = {
-      name: values.name,
-    };
-
-    try {
-      const response = await axios.patch<ProfileResponse>('/api/profile', req);
-      setProfile(response.data);
-    } catch (e) {
-      toast.show(e.message, 'danger');
-    }
+    await updateProfile(values);
   }
-
-  useEffect(() => {
-    getInstance()
-      .then(async (axios) => {
-        const response = await axios.get<ProfileResponse>('/api/profile');
-        setProfile(response.data);
-      })
-      .catch((e) => toast.show(e.message, 'danger'));
-  }, [toast]);
 
   return (
     <div className="w-100 h-100" style={{ background: '#F8F8F8' }}>
@@ -70,7 +37,7 @@ export function Profile() {
         }}
       >
         <div className="d-flex justify-content-between">
-          <NavButton icon={arrowLeft} hidden={!canExit} />
+          <NavButton icon={arrowLeft} hidden={!isProfileSetupDone} />
           <NavButton icon={boxArrowRight} />
         </div>
 
