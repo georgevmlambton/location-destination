@@ -11,10 +11,7 @@ profileRouter.get('/api/profile', async (req, resp) => {
   try {
     const user = await User.findOne({ uid: req.user.uid });
 
-    const profile: ProfileResponse = {
-      userId: req.user.uid,
-      name: user?.name,
-    };
+    const profile = createProfileResponse(req.user.uid, user);
 
     resp.send(profile);
   } catch (e) {
@@ -37,13 +34,27 @@ profileRouter.patch('/api/profile', async (req, resp) => {
 
     await user.save();
 
-    const profile: ProfileResponse = {
-      userId: req.user.uid,
-      name: user?.name,
-    };
+    const profile = createProfileResponse(req.user.uid, user);
     resp.send(profile);
   } catch (e) {
     console.error(e);
+
+    if (e instanceof ValidationError) {
+      return resp
+        .status(400)
+        .send({ message: 'Validation Errors: ' + e.errors.join(', ') });
+    }
+
     resp.status(500).send({ message: 'Internal Server Error' });
   }
 });
+
+function createProfileResponse(
+  uid: string,
+  user: IUser | null
+): ProfileResponse {
+  return {
+    userId: uid,
+    name: user?.name,
+  };
+}

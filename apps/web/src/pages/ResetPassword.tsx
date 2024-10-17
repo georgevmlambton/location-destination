@@ -54,12 +54,14 @@ export function ResetPassword() {
       return;
     }
 
-    verifyPasswordResetCode(code).then((valid) => {
-      if (!valid) {
-        toast.show('Invalid Link', 'danger');
-        navigate('/sign-in');
-      }
-    });
+    verifyPasswordResetCode(code)
+      .then((valid) => {
+        if (!valid) {
+          toast.show('Invalid Link', 'danger');
+          navigate('/sign-in');
+        }
+      })
+      .catch((e) => toast.show(e.message, 'danger'));
   }, [navigate, search, toast, verifyPasswordResetCode]);
 
   return (
