@@ -3,7 +3,8 @@ import {
   ProfilePatchRequest,
   ProfileResponse,
 } from '@location-destination/types/src/requests/profile';
-import { User } from '../db/user';
+import { IUser, User } from '../db/user';
+import { ValidationError } from 'yup';
 
 export const profileRouter = Router();
 
