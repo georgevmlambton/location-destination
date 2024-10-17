@@ -33,6 +33,10 @@ profileRouter.patch('/api/profile', async (req, resp) => {
       user.name = patch.name;
     }
 
+    if (patch.type) {
+      user.type = patch.type;
+    }
+
     await user.save();
 
     const profile = createProfileResponse(req.user.uid, user);
@@ -57,5 +61,6 @@ function createProfileResponse(
   return {
     userId: uid,
     name: user?.name,
+    type: user?.type,
   };
 }
