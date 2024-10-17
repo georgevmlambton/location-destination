@@ -9,6 +9,8 @@ import { SignIn } from './pages/SignIn';
 import VerifyEmail from './pages/VerifyEmail';
 import { ForgotPassword } from './pages/ForgotPassword';
 import { Callback } from './pages/Callback';
+import { Profile } from './pages/profile';
+import './App.css';
 
 const router = createBrowserRouter([
   {
@@ -34,6 +36,10 @@ const router = createBrowserRouter([
   {
     path: '/callback',
     element: <Callback />,
+  },
+  {
+    path: '/profile',
+    element: <AuthenticatedRoute element={<Profile />} />,
   },
 ]);
 
