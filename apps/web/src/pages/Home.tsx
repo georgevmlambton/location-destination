@@ -1,26 +1,41 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext } from 'react';
+import personFill from '../assets/person-fill.svg';
+import background from '../assets/background.png';
 import { UserContext } from '../providers/user-provider';
-import { getInstance } from '../axios';
+import { NavButton } from '../components/nav/NavButton';
+import { useNavigate } from 'react-router-dom';
 
 export default function Home() {
-  const { signOut } = useContext(UserContext);
-  const [message, setMessage] = useState('');
-
-  useEffect(() => {
-    getInstance()
-      .then(async (axios) => {
-        const response = await axios.get<string>('/');
-        setMessage(response.data);
-      })
-      .catch((e) => {
-        console.error(e.message);
-      });
-  }, []);
+  const { profile } = useContext(UserContext);
+  const navigate = useNavigate();
 
   return (
-    <div>
-      <p>{message}</p>
-      <button onClick={signOut}>Sign Out</button>
+    <div
+      className="w-100 h-100 d-flex flex-column align-items-center"
+      style={{
+        background:
+          'linear-gradient(180deg, rgba(189,229,199,1) 0%, rgba(248,248,248,1) 30%, rgba(255,255,255,1) 100%)',
+      }}
+    >
+      <img
+        className="position-absolute"
+        src={background}
+        style={{
+          height: 'auto',
+          bottom: '-38%',
+          left: '-49%',
+          opacity: '24%',
+          width: '160%',
+        }}
+      />
+      <div className="p-4 align-self-stretch">
+        <div className="d-flex justify-content-between position-relative">
+          <NavButton icon={personFill} hidden />
+          <NavButton icon={personFill} onClick={() => navigate('/profile')} />
+        </div>
+      </div>
+
+      <h3 className="text-dark-emphasis">Welcome, {profile?.name}</h3>
     </div>
   );
 }

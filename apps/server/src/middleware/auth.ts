@@ -19,7 +19,8 @@ export async function authMiddleware(
   }
 
   try {
-    await firebase.auth.verifyIdToken(token);
+    const user = await firebase.auth.verifyIdToken(token);
+    req.user = user;
     next();
   } catch (e) {
     console.error(e);

@@ -1,5 +1,5 @@
 import { ErrorMessage, Field, Form, Formik } from 'formik';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { Link } from 'react-router-dom';
 import * as yup from 'yup';
 import { UserContext } from '../providers/user-provider';
@@ -17,10 +17,12 @@ const validationSchema = yup.object().shape({
 export function SignIn() {
   const { signIn } = useContext(UserContext);
   const { signInWithGoogle } = useContext(UserContext);
+  const [loading, setLoading] = useState(false);
   const toast = useContext(ToastContext);
 
   async function submit(email: string, password: string) {
     try {
+      setLoading(true);
       await signIn(email, password);
     } catch (e) {
       if (e instanceof FirebaseError && e.code == 'auth/invalid-credential') {
@@ -28,6 +30,7 @@ export function SignIn() {
       } else if (e instanceof Error) {
         toast.show(e.message, 'danger');
       }
+      setLoading(false);
     }
   }
 
@@ -67,13 +70,9 @@ export function SignIn() {
           <Formik
             initialValues={{ email: '', password: '' }}
             validationSchema={validationSchema}
-            onSubmit={async (values, { setSubmitting }) => {
-              setSubmitting(true);
-              await submit(values.email, values.password);
-              setSubmitting(false);
-            }}
+            onSubmit={(values) => submit(values.email, values.password)}
           >
-            {({ isSubmitting, errors, touched }) => (
+            {({ errors, touched }) => (
               <Form className="mt-4 text-start">
                 <div className="mb-3">
                   <label htmlFor="email" className="form-label ms-2 fs-5">
@@ -116,7 +115,7 @@ export function SignIn() {
                   type="submit"
                   className="btn btn-success rounded-pill w-100 py-2 mt-5 fs-4"
                   style={{ backgroundColor: '#00634B', border: 'none' }}
-                  disabled={isSubmitting}
+                  disabled={loading}
                 >
                   Sign In
                 </button>
