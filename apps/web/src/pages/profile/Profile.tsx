@@ -11,14 +11,16 @@ import { NavButton } from '../../components/nav/NavButton';
 import { ProfileField } from './ProfileField';
 import { useContext } from 'react';
 import { UserContext } from '../../providers/user-provider';
+import { ButtonRadioField } from '../../components/form/ButtonRadioField';
 import { useNavigate } from 'react-router-dom';
+import { ProfilePatchRequest } from '@location-destination/types/src/requests/profile';
 
 const validationSchema = yup.object({
   name: yup.string().required('Name is required'),
 });
 
-function isRequiredFieldsFilled(values: { name: string | undefined }) {
-  return !!values.name;
+function isRequiredFieldsFilled(values: ProfilePatchRequest) {
+  return !!values.name && !!values.type;
 }
 
 export function Profile() {
@@ -26,7 +28,7 @@ export function Profile() {
   const { profile, isProfileSetupDone, updateProfile, signOut } =
     useContext(UserContext);
 
-  async function submit(values: { name: string | undefined }) {
+  async function submit(values: ProfilePatchRequest) {
     await updateProfile(values);
   }
 
@@ -78,7 +80,7 @@ export function Profile() {
 
       {profile && (
         <Formik
-          initialValues={{ name: profile.name }}
+          initialValues={{ name: profile.name, type: profile.type }}
           validationSchema={validationSchema}
           onSubmit={async (values, { setSubmitting, resetForm }) => {
             setSubmitting(true);
@@ -97,6 +99,20 @@ export function Profile() {
                 required
               >
                 <TextField touched={touched} errors={errors} name="name" />
+              </ProfileField>
+
+              <ProfileField
+                className="mt-4"
+                errors={errors}
+                touched={touched}
+                name="name"
+                label="Name"
+                required
+              >
+                <ButtonRadioField
+                  name="type"
+                  options={['Rider', 'Driver', 'Both']}
+                />
               </ProfileField>
 
               {dirty && isRequiredFieldsFilled(values) && (

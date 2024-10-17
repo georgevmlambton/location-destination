@@ -2,6 +2,7 @@ import { FormikErrors, FormikTouched } from 'formik';
 import { ReactNode } from 'react';
 
 export function ProfileField<T>({
+  className = '',
   name,
   label,
   required = false,
@@ -9,6 +10,7 @@ export function ProfileField<T>({
   touched,
   children,
 }: {
+  className?: string;
   name: keyof T;
   label: string;
   required?: boolean;
@@ -18,7 +20,7 @@ export function ProfileField<T>({
 }) {
   return (
     <div
-      className={`border shadow px-3 py-4 bg-white ${touched[name] && errors[name] ? 'border-danger' : 'border-secondary-subtle'}`}
+      className={`border shadow px-3 py-4 bg-white ${touched[name] && errors[name] ? 'border-danger' : 'border-secondary-subtle'} ${className}`}
       style={{
         borderRadius: '25px',
       }}

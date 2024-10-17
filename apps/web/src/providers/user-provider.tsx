@@ -81,7 +81,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<ProfileResponse | undefined>(
     undefined
   );
-  const isProfileSetupDone = useMemo(() => !!profile?.name, [profile]);
+  const isProfileSetupDone = useMemo(
+    () => !!profile?.name && !!profile.type,
+    [profile]
+  );
 
   const register = useCallback(async (email: string, password: string) => {
     const credential = await firebase.createUserWithEmailAndPassword(
@@ -163,6 +166,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const axios = await getInstance();
     const req: ProfilePatchRequest = {
       name: data.name,
+      type: data.type,
     };
 
     const response = await axios.patch<ProfileResponse>('/api/profile', req);
