@@ -11,6 +11,7 @@ import {
 } from 'react';
 import { auth } from '../firebase';
 import { ToastContext } from './toast-provider';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import {
   ProfilePatchRequest,
   ProfileResponse,
@@ -24,6 +25,7 @@ type UserContextType = {
   isProfileSetupDone: boolean;
   register: (email: string, password: string) => Promise<User>;
   signIn: (email: string, password: string) => Promise<User>;
+  signInWithGoogle: () => Promise<User>;
   signOut: () => void;
   sendVerifyEmail: () => Promise<void>;
   verifyEmail: (code: string) => Promise<void>;
@@ -40,6 +42,9 @@ const initialUserContext: UserContextType = {
     throw new Error('Missing provider');
   },
   signIn() {
+    throw new Error('Missing provider');
+  },
+  signInWithGoogle() {
     throw new Error('Missing provider');
   },
   signOut() {
@@ -96,6 +101,19 @@ export function UserProvider({ children }: { children: ReactNode }) {
     );
     return credential.user;
   }, []);
+
+  const signInWithGoogle = useCallback(async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      const result = await signInWithPopup(auth, provider);
+      setUser(result.user);
+      return result.user;
+    } catch (error) {
+      toast.show('Google Sign-In failed', 'danger');
+      throw error;
+    }
+  }, [toast]);
+  
 
   const signOut = useCallback(async () => {
     return auth.signOut();
@@ -184,6 +202,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         isProfileSetupDone,
         register,
         signIn,
+        signInWithGoogle,
         signOut: () => setShowSignOut(true),
         sendVerifyEmail,
         verifyEmail,

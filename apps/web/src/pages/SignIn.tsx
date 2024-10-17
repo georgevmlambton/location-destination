@@ -16,6 +16,7 @@ const validationSchema = yup.object().shape({
 
 export function SignIn() {
   const { signIn } = useContext(UserContext);
+  const { signInWithGoogle } = useContext(UserContext);
   const [loading, setLoading] = useState(false);
   const toast = useContext(ToastContext);
 
@@ -33,6 +34,16 @@ export function SignIn() {
     }
   }
 
+  // Function to handle Google Sign-In
+  async function handleGoogleSignIn() {
+    try {
+      await signInWithGoogle();
+      toast.show('Google Sign-In successful!', 'success');
+    } catch (e) {
+      toast.show(`Google Sign-In failed: ${e.message}`, 'danger');
+    }
+  }
+
   return (
     <div
       style={{
@@ -45,13 +56,17 @@ export function SignIn() {
     >
       <div className="row justify-content-center w-100 mx-3">
         <div className="col text-center">
+          <div className="d-flex align-items-center justify-content-center mb-1">
+            <img
+                src="/public/logo.png"
+                alt="EcoRide Logo"
+                style={{ width: '60px', height: '60px', borderRadius: '50%' }}
+              />
+          </div>
           <div className="d-flex align-items-center justify-content-center mb-5">
-            <div
-              className="bg-secondary rounded-circle"
-              style={{ width: '60px', height: '60px' }}
-            ></div>
             <h1 className="ms-3">EcoRide</h1>
           </div>
+
           <Formik
             initialValues={{ email: '', password: '' }}
             validationSchema={validationSchema}
@@ -65,7 +80,9 @@ export function SignIn() {
                   </label>
                   <Field
                     type="email"
-                    className={`form-control rounded-pill py-2 fs-5 ${touched.email && errors.email ? 'border-danger' : 'border-secondary'}`}
+                    className={`form-control rounded-pill py-2 fs-5 ${
+                      touched.email && errors.email ? 'border-danger' : 'border-secondary'
+                    }`}
                     name="email"
                   />
                   <ErrorMessage
@@ -80,7 +97,9 @@ export function SignIn() {
                   </label>
                   <Field
                     type="password"
-                    className={`form-control rounded-pill py-2 fs-5 ${touched.password && errors.password ? 'border-danger' : 'border-secondary'}`}
+                    className={`form-control rounded-pill py-2 fs-5 ${
+                      touched.password && errors.password ? 'border-danger' : 'border-secondary'
+                    }`}
                     name="password"
                   />
                   <ErrorMessage
@@ -103,11 +122,43 @@ export function SignIn() {
               </Form>
             )}
           </Formik>
+
+          <button
+            type="button"
+            className="btn w-100 py-2 mt-3 fs-4"
+            style={{
+              backgroundColor: '#F5F5F5',
+              color: '#000',
+              border: '1px solid #DDDDDD',
+              borderRadius: '50px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '10px 0',
+            }}
+            onClick={handleGoogleSignIn}
+          >
+            <i
+              className="fab fa-google me-2"
+              style={{
+                background: 'conic-gradient(from -45deg, #ea4335 110deg, #4285f4 90deg 180deg, #34a853 180deg 270deg, #fbbc05 270deg)',
+                WebkitBackgroundClip: 'text',
+                backgroundClip: 'text',
+                color: 'transparent',
+                WebkitTextFillColor: 'transparent',
+              }}
+            ></i>  {/* Google Icon */}
+            <span style={{ fontSize: '16px' }}>Log in with Google</span>
+          </button>
+
           <Link to="/register" className="d-block mt-3 text-center">
             Don't have an account? Click here to register
           </Link>
+          
         </div>
       </div>
+
+      
     </div>
   );
 }
