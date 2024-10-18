@@ -116,7 +116,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
       throw error;
     }
   }, [toast]);
-  
 
   const signOut = useCallback(async () => {
     return auth.signOut();
@@ -162,7 +161,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
     []
   );
 
-  async function updateProfile(data: Partial<ProfileResponse>) {
+  const updateProfile = useCallback(async function updateProfile(
+    data: Partial<ProfileResponse>
+  ) {
     const axios = await getInstance();
     const req: ProfilePatchRequest = {
       name: data.name,
@@ -172,7 +173,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const response = await axios.patch<ProfileResponse>('/api/profile', req);
     setProfile(response.data);
     return response.data;
-  }
+  }, []);
 
   useEffect(() => {
     const onUserChange = async (user: User | null) => {

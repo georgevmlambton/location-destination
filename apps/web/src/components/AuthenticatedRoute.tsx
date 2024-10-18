@@ -10,7 +10,9 @@ export function AuthenticatedRoute({ element }: { element: JSX.Element }) {
     <Navigate to="/sign-in" />
   ) : !user.emailVerified && location.pathname !== '/verify-email' ? (
     <Navigate to="/verify-email" />
-  ) : !isProfileSetupDone && location.pathname !== '/profile' ? (
+  ) : user.emailVerified &&
+    !isProfileSetupDone &&
+    location.pathname !== '/profile' ? (
     <Navigate to="/profile" />
   ) : (
     element
