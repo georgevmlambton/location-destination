@@ -21,7 +21,7 @@ const validationSchema = yup.object({
 });
 
 function isRequiredFieldsFilled(values: ProfilePatchRequest) {
-  return !!values.name && !!values.type && !!values.photoUrl;
+  return !!values.name && !!values.type;
 }
 
 export function Profile() {
