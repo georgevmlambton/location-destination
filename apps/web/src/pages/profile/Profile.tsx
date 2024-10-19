@@ -14,6 +14,7 @@ import { UserContext } from '../../providers/user-provider';
 import { ButtonRadioField } from '../../components/form/ButtonRadioField';
 import { useNavigate } from 'react-router-dom';
 import { ProfilePatchRequest } from '@location-destination/types/src/requests/profile';
+import { ButtonCheckboxField } from '../../components/form/ButtonCheckboxField';
 
 const validationSchema = yup.object({
   name: yup.string().required('Name is required'),
@@ -80,7 +81,11 @@ export function Profile() {
 
       {profile && (
         <Formik
-          initialValues={{ name: profile.name, type: profile.type }}
+          initialValues={{
+            name: profile.name,
+            type: profile.type,
+            preferredVehicle: profile.preferredVehicle,
+          }}
           validationSchema={validationSchema}
           onSubmit={async (values, { setSubmitting, resetForm }) => {
             setSubmitting(true);
@@ -114,6 +119,21 @@ export function Profile() {
                   options={['Rider', 'Driver', 'Both']}
                 />
               </ProfileField>
+
+              {(values.type === 'Rider' || values.type === 'Both') && (
+                <ProfileField
+                  className="mt-4"
+                  errors={errors}
+                  touched={touched}
+                  name="name"
+                  label="What type of vehicle would you prefer to ride in?"
+                >
+                  <ButtonCheckboxField
+                    name="preferredVehicle"
+                    options={['Electric', 'Gas', 'Hybrid']}
+                  />
+                </ProfileField>
+              )}
 
               {dirty && isRequiredFieldsFilled(values) && (
                 <div className="d-flex position-absolute bottom-0 end-0 p-4">

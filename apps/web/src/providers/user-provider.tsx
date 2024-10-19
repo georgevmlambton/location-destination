@@ -168,6 +168,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const req: ProfilePatchRequest = {
       name: data.name,
       type: data.type,
+      preferredVehicle: data.preferredVehicle,
     };
 
     const response = await axios.patch<ProfileResponse>('/api/profile', req);
