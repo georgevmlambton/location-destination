@@ -160,7 +160,7 @@ export function Profile() {
                 />
               </ProfileField>
 
-              {dirty && isRequiredFieldsFilled(values) && (
+              {(dirty || file) && isRequiredFieldsFilled(values) && (
                 <div className="d-flex position-absolute bottom-0 end-0 p-4">
                   <button
                     disabled={isSubmitting}
