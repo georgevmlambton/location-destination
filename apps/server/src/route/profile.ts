@@ -29,12 +29,12 @@ profileRouter.get('/api/profile', async (req, resp) => {
   }
 });
 
-profileRouter.patch('/api/profile', upload.single('photo'), async (req, resp) => {
+profileRouter.patch('/api/profile', async (req, resp) => {
   try {
     const patch = new ProfilePatchRequest(req.body);
 
     const user =
-      (await User.findOne({ uid: req.user.uid })) ||
+      await User.findOne({ uid: req.user.uid }) ||
       new User({ uid: req.user.uid });
 
     if (patch.name) {
@@ -45,48 +45,15 @@ profileRouter.patch('/api/profile', upload.single('photo'), async (req, resp) =>
       user.type = patch.type;
     }
 
-    if (req.file) {
-      const fileName = `users/avatars/${req.user.uid}/avatar.jpg`;
-      const file = bucket.file(fileName);
-      const token = uuidv4();
-
-      const stream = file.createWriteStream({
-        metadata: {
-          contentType: req.file.mimetype,
-          metadata: {
-            firebaseStorageDownloadTokens: token,
-          },
-        },
-      });
-
-      stream.on('finish', async () => {
-        const photoUrl = `${firebaseBaseUrl}${encodeURIComponent(fileName)}?alt=media&token=${token}`;
-        user.photoUrl = photoUrl;
-        await user.save();
-        const profile = createProfileResponse(req.user.uid, user);
-        resp.send(profile);
-      });
-
-      stream.on('error', (error) => {
-        console.error('Error uploading file:', error);
-        resp.status(500).send({ message: 'Error uploading photo' });
-      });
-
-      stream.end(req.file.buffer);
-    } else {
-      await user.save();
-      const profile = createProfileResponse(req.user.uid, user);
-      resp.send(profile);
+    if (patch.photoUrl) {
+      user.photoUrl = patch.photoUrl;
     }
+
+    await user.save();
+    const profile = createProfileResponse(req.user.uid, user);
+    resp.send(profile);
   } catch (e) {
     console.error(e);
-
-    if (e instanceof ValidationError) {
-      return resp
-        .status(400)
-        .send({ message: 'Validation Errors: ' + e.errors.join(', ') });
-    }
-
     resp.status(500).send({ message: 'Internal Server Error' });
   }
 });
