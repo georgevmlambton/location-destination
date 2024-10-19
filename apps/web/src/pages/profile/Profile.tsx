@@ -106,7 +106,7 @@ export function Profile() {
                 errors={errors}
                 touched={touched}
                 name="name"
-                label="Name"
+                label="How do you plan to use this app?"
                 required
               >
                 <ButtonRadioField
