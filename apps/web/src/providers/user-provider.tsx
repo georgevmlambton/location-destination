@@ -162,13 +162,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
   );
 
   const updateProfile = useCallback(async function updateProfile(
-    data: Partial<ProfileResponse>
+    req: ProfilePatchRequest
   ) {
     const axios = await getInstance();
-    const req: ProfilePatchRequest = {
-      name: data.name,
-      type: data.type,
-    };
 
     const response = await axios.patch<ProfileResponse>('/api/profile', req);
     setProfile(response.data);
