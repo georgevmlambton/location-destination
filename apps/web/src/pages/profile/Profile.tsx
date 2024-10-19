@@ -44,6 +44,7 @@ const validationSchema = yup.object({
     is: (type: string) => type === 'Driver' || type === 'Both',
     then: (schmea) => schmea.required('Required field'),
   }),
+  capacity: yup.number().min(1, 'Must be greater than 0'),
 });
 
 function isRequiredFieldsFilled(values: {
@@ -81,6 +82,7 @@ export function Profile() {
     vehicleYear?: string;
     vehicleColor?: string;
     vehicleLicensePlate?: string;
+    vehicleCapacity?: number;
   }) {
     const req: ProfilePatchRequest = {
       name: values.name,
@@ -94,6 +96,7 @@ export function Profile() {
         year: values.vehicleYear ? parseInt(values.vehicleYear) : undefined,
         color: values.vehicleColor,
         licensePlate: values.vehicleLicensePlate,
+        capacity: values.vehicleCapacity,
       };
     }
 
@@ -156,6 +159,7 @@ export function Profile() {
             vehicleYear: profile.vehicle?.year?.toString(),
             vehicleColor: profile.vehicle?.color,
             vehicleLicensePlate: profile.vehicle?.licensePlate,
+            vehicleCapacity: profile?.vehicle?.capacity || 4,
           }}
           validationSchema={validationSchema}
           onSubmit={async (values, { setSubmitting, resetForm }) => {
@@ -165,7 +169,15 @@ export function Profile() {
             resetForm({ values });
           }}
         >
-          {({ isSubmitting, errors, touched, dirty, resetForm, values }) => (
+          {({
+            isSubmitting,
+            errors,
+            touched,
+            dirty,
+            resetForm,
+            values,
+            setFieldValue,
+          }) => (
             <Form className="px-4 mt-5 pb-5 mb-5">
               <ProfileField
                 errors={errors}
@@ -192,49 +204,106 @@ export function Profile() {
               </ProfileField>
 
               {(values.type === 'Driver' || values.type == 'Both') && (
-                <ProfileField
-                  className="mt-4"
-                  errors={errors}
-                  touched={touched}
-                  label="Vehicle Details"
-                  required
-                >
-                  <TextField
-                    className="mt-3"
-                    placeholder="Make"
-                    touched={touched}
+                <>
+                  <ProfileField
+                    className="mt-4"
                     errors={errors}
-                    name="vehicleMake"
-                  />
-                  <TextField
-                    className="mt-3"
-                    placeholder="Model"
                     touched={touched}
+                    label="Vehicle Details"
+                    required
+                  >
+                    <TextField
+                      className="mt-3"
+                      placeholder="Make"
+                      touched={touched}
+                      errors={errors}
+                      name="vehicleMake"
+                    />
+                    <TextField
+                      className="mt-3"
+                      placeholder="Model"
+                      touched={touched}
+                      errors={errors}
+                      name="vehicleModel"
+                    />
+                    <TextField
+                      className="mt-3"
+                      placeholder="Year"
+                      touched={touched}
+                      errors={errors}
+                      name="vehicleYear"
+                    />
+                    <TextField
+                      className="mt-3"
+                      placeholder="Color"
+                      touched={touched}
+                      errors={errors}
+                      name="vehicleColor"
+                    />
+                    <TextField
+                      className="mt-3"
+                      placeholder="License Plate"
+                      touched={touched}
+                      errors={errors}
+                      name="vehicleLicensePlate"
+                    />
+                  </ProfileField>
+
+                  <ProfileField
+                    className="mt-4"
                     errors={errors}
-                    name="vehicleModel"
-                  />
-                  <TextField
-                    className="mt-3"
-                    placeholder="Year"
                     touched={touched}
-                    errors={errors}
-                    name="vehicleYear"
-                  />
-                  <TextField
-                    className="mt-3"
-                    placeholder="Color"
-                    touched={touched}
-                    errors={errors}
-                    name="vehicleColor"
-                  />
-                  <TextField
-                    className="mt-3"
-                    placeholder="License Plate"
-                    touched={touched}
-                    errors={errors}
-                    name="vehicleLicensePlate"
-                  />
-                </ProfileField>
+                    label="Passenger Capacity"
+                  >
+                    <div className="container">
+                      <div className="row justify-content-start">
+                        <button
+                          type="button"
+                          className="col col-auto btn text-white d-flex justify-content-center align-items-center p-0 pb-1"
+                          style={{
+                            backgroundColor: '#00634B',
+                            borderRadius: '50%',
+                            width: '32px',
+                            height: '32px',
+                          }}
+                          onClick={() =>
+                            setFieldValue(
+                              'vehicleCapacity',
+                              Math.max(1, values.vehicleCapacity - 1)
+                            )
+                          }
+                        >
+                          -
+                        </button>
+                        <input
+                          type="number"
+                          className={`col col-1 form-control w-auto text-center border-0 user-select-none`}
+                          name={'vehicleCapacity'}
+                          readOnly
+                          value={values.vehicleCapacity}
+                        />
+                        <button
+                          type="button"
+                          className="col col-auto btn text-white d-flex justify-content-center align-items-center p-0 pb-1"
+                          style={{
+                            backgroundColor: '#00634B',
+                            borderRadius: '50%',
+                            width: '32px',
+                            height: '32px',
+                          }}
+                          onClick={() =>
+                            setFieldValue(
+                              'vehicleCapacity',
+                              values.vehicleCapacity + 1
+                            )
+                          }
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  </ProfileField>
+                </>
               )}
 
               {dirty && isRequiredFieldsFilled(values) && (

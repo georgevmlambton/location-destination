@@ -9,6 +9,7 @@ export class ProfilePatchRequest {
     year?: number;
     color?: string;
     licensePlate?: string;
+    capacity?: number;
   };
 
   constructor(reqBody: unknown) {
@@ -23,6 +24,7 @@ export class ProfilePatchRequest {
         year: yup.number().min(1900),
         color: yup.string(),
         licensePlate: yup.string(),
+        capacity: yup.number().min(1),
       }),
     });
 
@@ -44,5 +46,6 @@ export type ProfileResponse = {
     year?: number;
     color?: string;
     licensePlate?: string;
+    capacity?: number;
   };
 };

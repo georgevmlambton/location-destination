@@ -10,6 +10,7 @@ export interface IUser {
     year?: number;
     color?: string;
     licensePlate?: string;
+    capacity?: number;
   };
 }
 
@@ -23,6 +24,7 @@ const userSchema = new Schema<IUser>({
     year: Number,
     color: String,
     licensePlate: String,
+    capacity: Number,
   },
 });
 
