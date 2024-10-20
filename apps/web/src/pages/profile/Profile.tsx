@@ -379,7 +379,7 @@ export function Profile() {
               )}
 
               {(dirty || file) && isRequiredFieldsFilled(values) && (
-                <div className="d-flex position-absolute bottom-0 end-0 p-4">
+                <div className="d-flex position-fixed bottom-0 end-0 p-4">
                   <button
                     disabled={isSubmitting}
                     onClick={() => resetForm()}
