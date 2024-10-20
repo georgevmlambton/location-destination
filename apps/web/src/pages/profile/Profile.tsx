@@ -9,11 +9,12 @@ import { Toast, ToastContainer } from 'react-bootstrap';
 import { TextField } from '../../components/form/TextField';
 import { NavButton } from '../../components/nav/NavButton';
 import { ProfileField } from './ProfileField';
-import { useContext } from 'react';
+import { useContext, useRef, useState, useEffect } from 'react';
 import { UserContext } from '../../providers/user-provider';
 import { ButtonRadioField } from '../../components/form/ButtonRadioField';
 import { useNavigate } from 'react-router-dom';
 import { ProfilePatchRequest } from '@location-destination/types/src/requests/profile';
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 const validationSchema = yup.object({
   name: yup.string().required('Name is required'),
@@ -25,12 +26,46 @@ function isRequiredFieldsFilled(values: ProfilePatchRequest) {
 
 export function Profile() {
   const navigate = useNavigate();
-  const { profile, isProfileSetupDone, updateProfile, signOut } =
-    useContext(UserContext);
+  const { profile, isProfileSetupDone, updateProfile, signOut, user } =
+  useContext(UserContext);
+  const [photoUrl, setPhotoUrl] = useState(profile?.photoUrl || '');
+  const [file, setFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (profile?.photoUrl) {
+      setPhotoUrl(profile.photoUrl);
+    }
+  }, [profile]);
 
   async function submit(values: ProfilePatchRequest) {
+    let uploadedPhotoUrl = photoUrl;
+  
+    if (file) {
+      const storage = getStorage();
+      const storageRef = ref(storage, `/users/avatars/${user?.uid}/avatar.jpg`);
+  
+      await uploadBytes(storageRef, file);
+ 
+      uploadedPhotoUrl = await getDownloadURL(storageRef);
+      values.photoUrl = uploadedPhotoUrl;
+    }
     await updateProfile(values);
   }
+  
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0];
+
+    if (selectedFile && selectedFile.type === 'image/jpeg' && selectedFile.size < 1048576) {
+      setFile(selectedFile);
+
+      const reader = new FileReader();
+      reader.onload = (e) => setPhotoUrl(e.target?.result as string);
+      reader.readAsDataURL(selectedFile);
+    } else {
+      alert('Please select a valid JPG image under 1MB');
+    }
+  };
 
   return (
     <div className="w-100 h-100" style={{ background: '#F8F8F8' }}>
@@ -57,14 +92,24 @@ export function Profile() {
         <div className="d-flex align-items-end mt-5 position-relative">
           <img
             className="rounded-circle"
-            src={personFill}
+            src={profile?.photoUrl || personFill}
+            alt="Profile Avatar"
             style={{
               width: '100px',
               height: '100px',
               border: '2px solid #CCCCCC',
-              borderRadius: '50%',
               background: 'white',
+              cursor: 'pointer',
             }}
+            onClick={() => fileInputRef.current?.click()}
+          />
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".jpg"
+            style={{ display: 'none' }}
+            onChange={handleFileChange}
           />
           <h2
             className="ms-3 pb-3 placeholder-glow flex-grow-1"
@@ -80,7 +125,7 @@ export function Profile() {
 
       {profile && (
         <Formik
-          initialValues={{ name: profile.name, type: profile.type }}
+          initialValues={{ name: profile.name, type: profile.type, photoUrl: profile.photoUrl }}
           validationSchema={validationSchema}
           onSubmit={async (values, { setSubmitting, resetForm }) => {
             setSubmitting(true);
@@ -115,7 +160,7 @@ export function Profile() {
                 />
               </ProfileField>
 
-              {dirty && isRequiredFieldsFilled(values) && (
+              {(dirty || file) && isRequiredFieldsFilled(values) && (
                 <div className="d-flex position-absolute bottom-0 end-0 p-4">
                   <button
                     disabled={isSubmitting}
