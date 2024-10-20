@@ -11,6 +11,8 @@ export class ProfilePatchRequest {
     licensePlate?: string;
     capacity?: number;
   };
+  preferredVehicle?: VehicleType[];
+  photoUrl?: string | null;
 
   constructor(reqBody: unknown) {
     const schema = yup.object({
@@ -26,15 +28,29 @@ export class ProfilePatchRequest {
         licensePlate: yup.string(),
         capacity: yup.number().min(1),
       }),
+      preferredVehicle: yup
+        .array()
+        .of(
+          yup
+            .mixed<VehicleType>()
+            .oneOf(['Electric', 'Hybrid', 'Gas'])
+            .required()
+        ),
+      photoUrl: yup.string().url('Invalid URL').notRequired(),
     });
 
-    const { name, type, vehicle } = schema.validateSync(reqBody);
+    const { name, type, vehicle, preferredVehicle, photoUrl } =
+      schema.validateSync(reqBody);
 
     this.name = name;
     this.type = type;
     this.vehicle = vehicle;
+    this.photoUrl = photoUrl;
+    this.preferredVehicle = preferredVehicle;
   }
 }
+
+export type VehicleType = 'Electric' | 'Hybrid' | 'Gas';
 
 export type ProfileResponse = {
   userId: string;
@@ -48,4 +64,6 @@ export type ProfileResponse = {
     licensePlate?: string;
     capacity?: number;
   };
+  preferredVehicle?: VehicleType[];
+  photoUrl?: string | null;
 };

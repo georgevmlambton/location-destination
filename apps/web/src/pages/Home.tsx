@@ -30,8 +30,22 @@ export default function Home() {
       />
       <div className="p-4 align-self-stretch">
         <div className="d-flex justify-content-between position-relative">
-          <NavButton icon={personFill} hidden />
-          <NavButton icon={personFill} onClick={() => navigate('/profile')} />
+        <img
+            className="rounded-circle"
+            src={profile?.photoUrl || personFill}
+            alt="Profile Avatar"
+            style={{
+              width: '50px',
+              height: '50px',
+              border: '2px solid #CCCCCC',
+              background: 'white',
+              cursor: 'pointer',
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
+            }}
+            onClick={() => navigate('/profile')}
+          />
         </div>
       </div>
 

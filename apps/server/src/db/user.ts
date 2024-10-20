@@ -12,6 +12,8 @@ export interface IUser {
     licensePlate?: string;
     capacity?: number;
   };
+  preferredVehicle?: ('Electric' | 'Hybrid' | 'Gas')[];
+  photoUrl?: string | null;
 }
 
 const userSchema = new Schema<IUser>({
@@ -26,6 +28,8 @@ const userSchema = new Schema<IUser>({
     licensePlate: String,
     capacity: Number,
   },
+  preferredVehicle: { type: Array, required: false },
+  photoUrl: { type: String, required: false },
 });
 
 export const User = model<IUser>('User', userSchema);

@@ -166,7 +166,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
   ) {
     const axios = await getInstance();
 
+    console.log('Request', req);
     const response = await axios.patch<ProfileResponse>('/api/profile', req);
+    console.log('Response', response.data);
     setProfile(response.data);
     return response.data;
   }, []);
