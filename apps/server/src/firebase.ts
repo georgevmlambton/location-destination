@@ -10,5 +10,7 @@ export const app = admin.initializeApp({
 });
 
 export const auth = app.auth();
-export const storage = admin.storage(); 
-export const bucket = storage.bucket("gs://location-destination-d5d25.appspot.com");
+export const storage = admin.storage();
+export const bucket = storage.bucket(
+  'gs://location-destination-d5d25.appspot.com'
+);

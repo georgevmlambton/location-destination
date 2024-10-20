@@ -13,16 +13,65 @@ import { useContext, useRef, useState, useEffect } from 'react';
 import { UserContext } from '../../providers/user-provider';
 import { ButtonRadioField } from '../../components/form/ButtonRadioField';
 import { useNavigate } from 'react-router-dom';
-import { ProfilePatchRequest } from '@location-destination/types/src/requests/profile';
+import {
+  ProfilePatchRequest,
+  VehicleType,
+} from '@location-destination/types/src/requests/profile';
 import { ButtonCheckboxField } from '../../components/form/ButtonCheckboxField';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const validationSchema = yup.object({
   name: yup.string().required('Name is required'),
+  type: yup
+    .mixed<'Rider' | 'Driver' | 'Both'>()
+    .oneOf(['Rider', 'Driver', 'Both']),
+  vehicleMake: yup.string().when('type', {
+    is: (type: string) => type === 'Driver' || type === 'Both',
+    then: (schmea) => schmea.required('Required field'),
+  }),
+  vehicleModel: yup.string().when('type', {
+    is: (type: string) => type === 'Driver' || type === 'Both',
+    then: (schmea) => schmea.required('Required field'),
+  }),
+  vehicleYear: yup
+    .number()
+    .typeError('Must be a valid year')
+    .min(1900, 'Must be greater than 1900')
+    .when('type', {
+      is: (type: string) => type === 'Driver' || type === 'Both',
+      then: (schmea) => schmea.required('Required field'),
+    }),
+  vehicleColor: yup.string().when('type', {
+    is: (type: string) => type === 'Driver' || type === 'Both',
+    then: (schmea) => schmea.required('Required field'),
+  }),
+  vehicleLicensePlate: yup.string().when('type', {
+    is: (type: string) => type === 'Driver' || type === 'Both',
+    then: (schmea) => schmea.required('Required field'),
+  }),
+  capacity: yup.number().min(1, 'Must be greater than 0'),
 });
 
-function isRequiredFieldsFilled(values: ProfilePatchRequest) {
-  return !!values.name && !!values.type;
+function isRequiredFieldsFilled(values: {
+  name?: string;
+  type?: 'Rider' | 'Driver' | 'Both';
+  vehicleMake?: string;
+  vehicleModel?: string;
+  vehicleYear?: string;
+  vehicleColor?: string;
+  vehicleLicensePlate?: string;
+}) {
+  return (
+    !!values.name &&
+    !!values.type &&
+    (values.type === 'Driver' || values.type == 'Both'
+      ? !!values.vehicleMake &&
+        !!values.vehicleModel &&
+        !!values.vehicleYear &&
+        !!values.vehicleColor &&
+        !!values.vehicleLicensePlate
+      : true)
+  );
 }
 
 export function Profile() {
@@ -39,8 +88,34 @@ export function Profile() {
     }
   }, [profile]);
 
-  async function submit(values: ProfilePatchRequest) {
+  async function submit(values: {
+    name?: string;
+    type?: 'Rider' | 'Driver' | 'Both';
+    preferredVehicle?: VehicleType[];
+    vehicleMake?: string;
+    vehicleModel?: string;
+    vehicleYear?: string;
+    vehicleColor?: string;
+    vehicleLicensePlate?: string;
+    vehicleCapacity?: number;
+  }) {
     let uploadedPhotoUrl = photoUrl;
+    const req: ProfilePatchRequest = {
+      name: values.name,
+      type: values.type,
+      preferredVehicle: values.preferredVehicle,
+    };
+
+    if (values.type === 'Driver' || values.type == 'Both') {
+      req.vehicle = {
+        make: values.vehicleMake,
+        model: values.vehicleModel,
+        year: values.vehicleYear ? parseInt(values.vehicleYear) : undefined,
+        color: values.vehicleColor,
+        licensePlate: values.vehicleLicensePlate,
+        capacity: values.vehicleCapacity,
+      };
+    }
 
     if (file) {
       const storage = getStorage();
@@ -49,9 +124,10 @@ export function Profile() {
       await uploadBytes(storageRef, file);
 
       uploadedPhotoUrl = await getDownloadURL(storageRef);
-      values.photoUrl = uploadedPhotoUrl;
+      req.photoUrl = uploadedPhotoUrl;
     }
-    await updateProfile(values);
+
+    await updateProfile(req);
   }
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -133,6 +209,12 @@ export function Profile() {
           initialValues={{
             name: profile.name,
             type: profile.type,
+            vehicleMake: profile.vehicle?.make,
+            vehicleModel: profile.vehicle?.model,
+            vehicleYear: profile.vehicle?.year?.toString(),
+            vehicleColor: profile.vehicle?.color,
+            vehicleLicensePlate: profile.vehicle?.licensePlate,
+            vehicleCapacity: profile?.vehicle?.capacity || 4,
             preferredVehicle: profile.preferredVehicle,
             photoUrl: profile.photoUrl,
           }}
@@ -144,8 +226,16 @@ export function Profile() {
             resetForm({ values });
           }}
         >
-          {({ isSubmitting, errors, touched, dirty, resetForm, values }) => (
-            <Form className="px-4 mt-5">
+          {({
+            isSubmitting,
+            errors,
+            touched,
+            dirty,
+            resetForm,
+            values,
+            setFieldValue,
+          }) => (
+            <Form className="px-4 mt-5 pb-5 mb-5">
               <ProfileField
                 errors={errors}
                 touched={touched}
@@ -169,6 +259,109 @@ export function Profile() {
                   options={['Rider', 'Driver', 'Both']}
                 />
               </ProfileField>
+
+              {(values.type === 'Driver' || values.type == 'Both') && (
+                <>
+                  <ProfileField
+                    className="mt-4"
+                    errors={errors}
+                    touched={touched}
+                    label="Vehicle Details"
+                    required
+                  >
+                    <TextField
+                      className="mt-3"
+                      placeholder="Make"
+                      touched={touched}
+                      errors={errors}
+                      name="vehicleMake"
+                    />
+                    <TextField
+                      className="mt-3"
+                      placeholder="Model"
+                      touched={touched}
+                      errors={errors}
+                      name="vehicleModel"
+                    />
+                    <TextField
+                      className="mt-3"
+                      placeholder="Year"
+                      touched={touched}
+                      errors={errors}
+                      name="vehicleYear"
+                    />
+                    <TextField
+                      className="mt-3"
+                      placeholder="Color"
+                      touched={touched}
+                      errors={errors}
+                      name="vehicleColor"
+                    />
+                    <TextField
+                      className="mt-3"
+                      placeholder="License Plate"
+                      touched={touched}
+                      errors={errors}
+                      name="vehicleLicensePlate"
+                    />
+                  </ProfileField>
+
+                  <ProfileField
+                    className="mt-4"
+                    errors={errors}
+                    touched={touched}
+                    label="Passenger Capacity"
+                  >
+                    <div className="container">
+                      <div className="row justify-content-start">
+                        <button
+                          type="button"
+                          className="col col-auto btn text-white d-flex justify-content-center align-items-center p-0 pb-1"
+                          style={{
+                            backgroundColor: '#00634B',
+                            borderRadius: '50%',
+                            width: '32px',
+                            height: '32px',
+                          }}
+                          onClick={() =>
+                            setFieldValue(
+                              'vehicleCapacity',
+                              Math.max(1, values.vehicleCapacity - 1)
+                            )
+                          }
+                        >
+                          -
+                        </button>
+                        <input
+                          type="number"
+                          className={`col col-1 form-control w-auto text-center border-0 user-select-none`}
+                          name={'vehicleCapacity'}
+                          readOnly
+                          value={values.vehicleCapacity}
+                        />
+                        <button
+                          type="button"
+                          className="col col-auto btn text-white d-flex justify-content-center align-items-center p-0 pb-1"
+                          style={{
+                            backgroundColor: '#00634B',
+                            borderRadius: '50%',
+                            width: '32px',
+                            height: '32px',
+                          }}
+                          onClick={() =>
+                            setFieldValue(
+                              'vehicleCapacity',
+                              values.vehicleCapacity + 1
+                            )
+                          }
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  </ProfileField>
+                </>
+              )}
 
               {(values.type === 'Rider' || values.type === 'Both') && (
                 <ProfileField
@@ -219,7 +412,10 @@ export function Profile() {
               )}
 
               {!isRequiredFieldsFilled(values) && (
-                <ToastContainer position="bottom-end" className="p-2">
+                <ToastContainer
+                  position="bottom-end"
+                  className="position-fixed p-2"
+                >
                   <Toast animation bg="danger">
                     <Toast.Body className="text-white">
                       Please fill all required fields

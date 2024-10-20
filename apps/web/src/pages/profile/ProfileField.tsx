@@ -11,7 +11,7 @@ export function ProfileField<T>({
   children,
 }: {
   className?: string;
-  name: keyof T;
+  name?: keyof T;
   label: string;
   required?: boolean;
   touched: FormikTouched<T>;
@@ -20,7 +20,7 @@ export function ProfileField<T>({
 }) {
   return (
     <div
-      className={`border shadow px-3 py-4 bg-white ${touched[name] && errors[name] ? 'border-danger' : 'border-secondary-subtle'} ${className}`}
+      className={`border shadow px-3 py-4 bg-white ${name && touched[name] && errors[name] ? 'border-danger' : 'border-secondary-subtle'} ${className}`}
       style={{
         borderRadius: '25px',
       }}
