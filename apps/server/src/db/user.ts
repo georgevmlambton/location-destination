@@ -5,6 +5,7 @@ export interface IUser {
   name?: string;
   type?: 'Rider' | 'Driver' | 'Both';
   preferredVehicle?: ('Electric' | 'Hybrid' | 'Gas')[];
+  photoUrl?: string | null;
 }
 
 const userSchema = new Schema<IUser>({
@@ -12,6 +13,7 @@ const userSchema = new Schema<IUser>({
   name: { type: String, required: false },
   type: { type: String, required: false },
   preferredVehicle: { type: Array, required: false },
+  photoUrl: { type: String, required: false },
 });
 
 export const User = model<IUser>('User', userSchema);

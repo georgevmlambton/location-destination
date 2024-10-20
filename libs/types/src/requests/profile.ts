@@ -4,6 +4,7 @@ export class ProfilePatchRequest {
   name?: string;
   type?: 'Rider' | 'Driver' | 'Both';
   preferredVehicle?: VehicleType[];
+  photoUrl?: string | null;
 
   constructor(reqBody: unknown) {
     const schema = yup.object({
@@ -19,12 +20,15 @@ export class ProfilePatchRequest {
             .oneOf(['Electric', 'Hybrid', 'Gas'])
             .required()
         ),
+      photoUrl: yup.string().url('Invalid URL').notRequired(),
     });
 
-    const { name, type, preferredVehicle } = schema.validateSync(reqBody);
+    const { name, type, preferredVehicle, photoUrl } =
+      schema.validateSync(reqBody);
 
     this.name = name;
     this.type = type;
+    this.photoUrl = photoUrl;
     this.preferredVehicle = preferredVehicle;
   }
 }
@@ -36,4 +40,5 @@ export type ProfileResponse = {
   name?: string;
   type?: 'Rider' | 'Driver' | 'Both';
   preferredVehicle?: VehicleType[];
+  photoUrl?: string | null;
 };
