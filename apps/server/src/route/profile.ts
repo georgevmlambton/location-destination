@@ -4,14 +4,8 @@ import {
   ProfileResponse,
 } from '@location-destination/types/src/requests/profile';
 import { IUser, User } from '../db/user';
-import { ValidationError } from 'yup';
-import multer from 'multer';
-import { bucket } from '../firebase';
-import { v4 as uuidv4 } from 'uuid';
 
 export const profileRouter = Router();
-const upload = multer({ storage: multer.memoryStorage() });
-const firebaseBaseUrl = "https://firebasestorage.googleapis.com/v0/b/location-destination-d5d25.appspot.com/o/";
 
 profileRouter.get('/api/profile', async (req, resp) => {
   try {
@@ -34,7 +28,7 @@ profileRouter.patch('/api/profile', async (req, resp) => {
     const patch = new ProfilePatchRequest(req.body);
 
     const user =
-      await User.findOne({ uid: req.user.uid }) ||
+      (await User.findOne({ uid: req.user.uid })) ||
       new User({ uid: req.user.uid });
 
     if (patch.name) {
@@ -43,6 +37,10 @@ profileRouter.patch('/api/profile', async (req, resp) => {
 
     if (patch.type) {
       user.type = patch.type;
+    }
+
+    if (patch.preferredVehicle) {
+      user.preferredVehicle = patch.preferredVehicle;
     }
 
     if (patch.photoUrl) {
@@ -66,6 +64,7 @@ function createProfileResponse(
     userId: uid,
     name: user?.name,
     type: user?.type,
+    preferredVehicle: user?.preferredVehicle,
     photoUrl: user?.photoUrl || null,
   };
 }

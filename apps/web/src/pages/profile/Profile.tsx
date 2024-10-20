@@ -14,7 +14,8 @@ import { UserContext } from '../../providers/user-provider';
 import { ButtonRadioField } from '../../components/form/ButtonRadioField';
 import { useNavigate } from 'react-router-dom';
 import { ProfilePatchRequest } from '@location-destination/types/src/requests/profile';
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { ButtonCheckboxField } from '../../components/form/ButtonCheckboxField';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const validationSchema = yup.object({
   name: yup.string().required('Name is required'),
@@ -27,7 +28,7 @@ function isRequiredFieldsFilled(values: ProfilePatchRequest) {
 export function Profile() {
   const navigate = useNavigate();
   const { profile, isProfileSetupDone, updateProfile, signOut, user } =
-  useContext(UserContext);
+    useContext(UserContext);
   const [photoUrl, setPhotoUrl] = useState(profile?.photoUrl || '');
   const [file, setFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -40,23 +41,27 @@ export function Profile() {
 
   async function submit(values: ProfilePatchRequest) {
     let uploadedPhotoUrl = photoUrl;
-  
+
     if (file) {
       const storage = getStorage();
       const storageRef = ref(storage, `/users/avatars/${user?.uid}/avatar.jpg`);
-  
+
       await uploadBytes(storageRef, file);
- 
+
       uploadedPhotoUrl = await getDownloadURL(storageRef);
       values.photoUrl = uploadedPhotoUrl;
     }
     await updateProfile(values);
   }
-  
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
 
-    if (selectedFile && selectedFile.type === 'image/jpeg' && selectedFile.size < 1048576) {
+    if (
+      selectedFile &&
+      selectedFile.type === 'image/jpeg' &&
+      selectedFile.size < 1048576
+    ) {
       setFile(selectedFile);
 
       const reader = new FileReader();
@@ -125,7 +130,12 @@ export function Profile() {
 
       {profile && (
         <Formik
-          initialValues={{ name: profile.name, type: profile.type, photoUrl: profile.photoUrl }}
+          initialValues={{
+            name: profile.name,
+            type: profile.type,
+            preferredVehicle: profile.preferredVehicle,
+            photoUrl: profile.photoUrl,
+          }}
           validationSchema={validationSchema}
           onSubmit={async (values, { setSubmitting, resetForm }) => {
             setSubmitting(true);
@@ -159,6 +169,21 @@ export function Profile() {
                   options={['Rider', 'Driver', 'Both']}
                 />
               </ProfileField>
+
+              {(values.type === 'Rider' || values.type === 'Both') && (
+                <ProfileField
+                  className="mt-4"
+                  errors={errors}
+                  touched={touched}
+                  name="name"
+                  label="What type of vehicle would you prefer to ride in?"
+                >
+                  <ButtonCheckboxField
+                    name="preferredVehicle"
+                    options={['Electric', 'Gas', 'Hybrid']}
+                  />
+                </ProfileField>
+              )}
 
               {(dirty || file) && isRequiredFieldsFilled(values) && (
                 <div className="d-flex position-absolute bottom-0 end-0 p-4">
