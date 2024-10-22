@@ -50,6 +50,9 @@ const validationSchema = yup.object({
     then: (schmea) => schmea.required('Required field'),
   }),
   capacity: yup.number().min(1, 'Must be greater than 0'),
+  vehicleType: yup
+    .mixed<'Electric' | 'Gas' | 'Hybrid'>()
+    .oneOf(['Electric', 'Gas', 'Hybrid']),
 });
 
 function isRequiredFieldsFilled(values: {
@@ -60,6 +63,7 @@ function isRequiredFieldsFilled(values: {
   vehicleYear?: string;
   vehicleColor?: string;
   vehicleLicensePlate?: string;
+  vehicleType?: 'Electric' | 'Gas' | 'Hybrid';
 }) {
   return (
     !!values.name &&
@@ -69,7 +73,8 @@ function isRequiredFieldsFilled(values: {
         !!values.vehicleModel &&
         !!values.vehicleYear &&
         !!values.vehicleColor &&
-        !!values.vehicleLicensePlate
+        !!values.vehicleLicensePlate &&
+        !!values.vehicleType
       : true)
   );
 }
@@ -98,6 +103,7 @@ export function Profile() {
     vehicleColor?: string;
     vehicleLicensePlate?: string;
     vehicleCapacity?: number;
+    vehicleType?: 'Electric' | 'Gas' | 'Hybrid';
   }) {
     let uploadedPhotoUrl = photoUrl;
     const req: ProfilePatchRequest = {
@@ -114,6 +120,7 @@ export function Profile() {
         color: values.vehicleColor,
         licensePlate: values.vehicleLicensePlate,
         capacity: values.vehicleCapacity,
+        vehicleType: values.vehicleType,
       };
     }
 
@@ -215,11 +222,13 @@ export function Profile() {
             vehicleColor: profile.vehicle?.color,
             vehicleLicensePlate: profile.vehicle?.licensePlate,
             vehicleCapacity: profile?.vehicle?.capacity || 4,
+            vehicleType: profile?.vehicle?.vehicleType,
             preferredVehicle: profile.preferredVehicle,
             photoUrl: profile.photoUrl,
           }}
           validationSchema={validationSchema}
           onSubmit={async (values, { setSubmitting, resetForm }) => {
+            console.log('Form values:', values);
             setSubmitting(true);
             await submit(values);
             setSubmitting(false);
@@ -306,6 +315,19 @@ export function Profile() {
                     />
                   </ProfileField>
 
+                  <ProfileField
+                    className="mt-4"
+                    errors={errors}
+                    touched={touched}
+                    label="Vehicle type"
+                    required
+                  >
+                    <ButtonRadioField
+                      name="vehicleType"
+                      options={['Electric', 'Gas', 'Hybrid']}
+                    />
+                  </ProfileField>
+                  
                   <ProfileField
                     className="mt-4"
                     errors={errors}
