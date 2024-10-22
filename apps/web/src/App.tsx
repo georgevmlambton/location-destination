@@ -10,6 +10,8 @@ import VerifyEmail from './pages/VerifyEmail';
 import { ForgotPassword } from './pages/ForgotPassword';
 import { Callback } from './pages/Callback';
 import { Profile } from './pages/profile';
+import { LookingForRide } from './pages/lookingForRide';
+
 import './App.css';
 
 const router = createBrowserRouter([
@@ -40,6 +42,10 @@ const router = createBrowserRouter([
   {
     path: '/profile',
     element: <AuthenticatedRoute element={<Profile />} />,
+  },
+  {
+    path: '/looking-for-ride',
+    element: <AuthenticatedRoute element={<LookingForRide />} />,
   },
 ]);
 
