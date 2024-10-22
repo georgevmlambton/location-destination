@@ -11,6 +11,7 @@ export interface IUser {
     color?: string;
     licensePlate?: string;
     capacity?: number;
+    vehicleType?: 'Electric' | 'Gas' | 'Hybrid';
   };
   preferredVehicle?: ('Electric' | 'Hybrid' | 'Gas')[];
   photoUrl?: string | null;
@@ -27,6 +28,7 @@ const userSchema = new Schema<IUser>({
     color: String,
     licensePlate: String,
     capacity: Number,
+    vehicleType: { type: String, required: false },
   },
   preferredVehicle: { type: Array, required: false },
   photoUrl: { type: String, required: false },

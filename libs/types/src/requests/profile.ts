@@ -10,6 +10,7 @@ export class ProfilePatchRequest {
     color?: string;
     licensePlate?: string;
     capacity?: number;
+    vehicleType?: 'Electric' | 'Gas' | 'Hybrid';
   };
   preferredVehicle?: VehicleType[];
   photoUrl?: string | null;
@@ -27,6 +28,9 @@ export class ProfilePatchRequest {
         color: yup.string(),
         licensePlate: yup.string(),
         capacity: yup.number().min(1),
+        vehicleType: yup
+         .mixed<'Electric' | 'Gas' | 'Hybrid'>()
+         .oneOf(['Electric', 'Gas', 'Hybrid']),
       }),
       preferredVehicle: yup
         .array()
@@ -63,6 +67,7 @@ export type ProfileResponse = {
     color?: string;
     licensePlate?: string;
     capacity?: number;
+    vehicleType?: 'Electric' | 'Gas' | 'Hybrid';
   };
   preferredVehicle?: VehicleType[];
   photoUrl?: string | null;
