@@ -1,15 +1,42 @@
 import arrowLeft from '../../assets/arrow-left.svg';
 import background from '../../assets/background.png';
 import { NavButton } from '../../components/nav/NavButton';
+import { ErrorMessage, Field, Form, Formik } from 'formik';
+import * as yup from 'yup';
+import { ToastContext } from '../../providers/toast-provider';
+import { FirebaseError } from 'firebase/app';
 import { useNavigate } from 'react-router-dom';
+import { useContext, useState } from 'react';
+
+const validationSchema = yup.object().shape({
+  pickup: yup.string().required('Pickup is required'),
+  dropoff: yup.string().required('Dropoff is required'),
+});
 
 export function LookingForRide() {
+  const [loading, setLoading] = useState(false);
+  const toast = useContext(ToastContext);
   const navigate = useNavigate();
+
+  async function submit(pickup: string, dropoff: string) {
+    try {
+      setLoading(true);
+      await LookingForRide();
+    } catch (e) {
+      if (e instanceof FirebaseError && e.code === 'auth/invalid-credential') {
+        toast.show('Invalid Email/Password', 'danger');
+      } else if (e instanceof Error) {
+        toast.show(e.message, 'danger');
+      }
+      setLoading(false);
+    }
+  }
 
   return (
     <div
-      className="w-100 h-100 d-flex flex-column align-items-center"
+      className="d-flex flex-column align-items-center position-relative"
       style={{
+        height: '100vh', // Full viewport height
         background:
           'linear-gradient(180deg, rgba(189,229,199,1) 0%, rgba(248,248,248,1) 30%, rgba(255,255,255,1) 100%)',
       }}
@@ -26,23 +53,83 @@ export function LookingForRide() {
         }}
       />
 
-      <div className="p-4 pb-5 position-relative overflow-hidden w-100">
-        {/* Make sure the container uses full width and aligns the button to the left */}
-        <div className="d-flex position-relative" style={{ width: '100%' }}>
-          <NavButton
-            icon={arrowLeft}
-            onClick={() => navigate('/')}
-          />
-        </div>
+      <div className="p-4 pb-5 position-relative w-100">
+        <NavButton icon={arrowLeft} onClick={() => navigate('/')} />
       </div>
 
-      <div className="p-4 align-self-stretch">
-        <div className="d-flex justify-content-between position-relative">
-        
-        </div>
-      </div>
+      <h3 className="text-dark-emphasis text-center mb-4">
+        Where are we traveling today?
+      </h3>
 
-      <h3 className="text-dark-emphasis">Where Are We Travelling Today?</h3>
+      <div
+        className="d-flex flex-column w-100 px-4"
+        style={{
+          flexGrow: 1,
+          justifyContent: 'space-between',
+        }}
+      >
+        <Formik
+          initialValues={{ pickup: '', dropoff: '' }}
+          validationSchema={validationSchema}
+          onSubmit={(values) => submit(values.pickup, values.dropoff)}
+        >
+          {({ errors, touched }) => (
+            <Form className="d-flex flex-column">
+              <div>
+                <div className="position-relative mb-0">
+                  <span className="position-absolute top-50 translate-middle-y ms-3">
+                    <i className="bi bi-geo-alt"></i>
+                  </span>
+                  <Field
+                    type="text"
+                    placeholder="Pickup Address"
+                    className={`form-control py-2 ps-5 fs-5 ${
+                      touched.pickup && errors.pickup ? 'border-danger' : 'border-secondary'
+                    }`}
+                    name="pickup"
+                    style={{
+                      backgroundColor: '#FFFFFF',
+                      border: '1px solid #D1D1D1',
+                      borderRadius: '10px 10px 0 0',
+                      marginBottom: '-1px',
+                    }}
+                  />
+                  <ErrorMessage name="pickup" className="text-danger ms-2" component="p" />
+                </div>
+
+                <div className="position-relative">
+                  <span className="position-absolute top-50 translate-middle-y ms-3">
+                    <i className="bi bi-geo-alt-fill"></i>
+                  </span>
+                  <Field
+                    type="text"
+                    placeholder="Drop-off Address"
+                    className={`form-control py-2 ps-5 fs-5 ${
+                      touched.dropoff && errors.dropoff ? 'border-danger' : 'border-secondary'
+                    }`}
+                    name="dropoff"
+                    style={{
+                      backgroundColor: '#FFFFFF',
+                      border: '1px solid #D1D1D1',
+                      borderRadius: '0 0 10px 10px',
+                    }}
+                  />
+                  <ErrorMessage name="dropoff" className="text-danger ms-2" component="p" />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="btn btn-success rounded-pill w-100 py-2 fs-4"
+                style={{ backgroundColor: '#00634B', border: 'none', marginTop: '80%', zIndex: 1 }}
+                disabled={loading}
+              >
+                Find a Ride
+              </button>
+            </Form>
+          )}
+        </Formik>
+      </div>
     </div>
   );
 }
