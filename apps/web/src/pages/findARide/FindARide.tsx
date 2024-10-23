@@ -13,7 +13,7 @@ const validationSchema = yup.object().shape({
   dropoff: yup.string().required('Dropoff is required'),
 });
 
-export function LookingForRide() {
+export function FindARide() {
   const [loading, setLoading] = useState(false);
   const toast = useContext(ToastContext);
   const navigate = useNavigate();
@@ -21,7 +21,7 @@ export function LookingForRide() {
   async function submit(pickup: string, dropoff: string) {
     try {
       setLoading(true);
-      await LookingForRide();
+      await FindARide();
     } catch (e) {
       if (e instanceof FirebaseError && e.code === 'auth/invalid-credential') {
         toast.show('Invalid Email/Password', 'danger');
@@ -36,7 +36,7 @@ export function LookingForRide() {
     <div
       className="d-flex flex-column align-items-center position-relative"
       style={{
-        height: '100vh', // Full viewport height
+        height: '100vh',
         background:
           'linear-gradient(180deg, rgba(189,229,199,1) 0%, rgba(248,248,248,1) 30%, rgba(255,255,255,1) 100%)',
       }}
