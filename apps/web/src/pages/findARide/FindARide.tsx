@@ -75,7 +75,7 @@ export function FindARide() {
         >
           {({ errors, touched }) => (
             <Form className="d-flex flex-column">
-              <div>
+              <div className='mb-4'>
                 <div className="position-relative mb-0">
                   <span className="position-absolute top-50 translate-middle-y ms-3">
                     <i className="bi bi-geo-alt"></i>
@@ -94,7 +94,6 @@ export function FindARide() {
                       marginBottom: '-1px',
                     }}
                   />
-                  <ErrorMessage name="pickup" className="text-danger ms-2" component="p" />
                 </div>
 
                 <div className="position-relative">
@@ -114,14 +113,16 @@ export function FindARide() {
                       borderRadius: '0 0 10px 10px',
                     }}
                   />
-                  <ErrorMessage name="dropoff" className="text-danger ms-2" component="p" />
                 </div>
               </div>
+
+              <ErrorMessage name="pickup" className="text-danger ms-2" component="p" />
+              <ErrorMessage name="dropoff" className="text-danger ms-2" component="p" />
 
               <button
                 type="submit"
                 className="btn btn-success rounded-pill w-100 py-2 fs-4"
-                style={{ backgroundColor: '#00634B', border: 'none', marginTop: '80%', zIndex: 1 }}
+                style={{ backgroundColor: '#00634B', border: 'none', marginTop: '60%', zIndex: 1 }}
                 disabled={loading}
               >
                 Find a Ride
