@@ -71,7 +71,7 @@ export default function Home() {
           <div
             className="position-absolute"
             style={{
-              top: '50%',
+              top: '25%',
               left: '10%',
               transform: 'translateY(-50%)',
               color: 'white',
@@ -83,14 +83,18 @@ export default function Home() {
           <div
             className="position-absolute"
             style={{
-              top: '50%',
+              top: '75%',
               right: '10%',
               transform: 'translateY(-50%)',
             }}
           >
             <button
-              className="btn btn-success rounded-circle"
-              style={{ width: '40px', height: '40px' }}
+              className="btn btn-success"
+              style={{
+                width: '60px',
+                height: '40px',
+                borderRadius: '20px',
+              }}
             >
               &rarr;
             </button>
@@ -113,7 +117,7 @@ export default function Home() {
           <div
             className="position-absolute"
             style={{
-              top: '50%',
+              top: '25%',
               left: '10%',
               transform: 'translateY(-50%)',
               color: 'white',
@@ -125,14 +129,18 @@ export default function Home() {
           <div
             className="position-absolute"
             style={{
-              top: '50%',
+              top: '75%',
               right: '10%',
               transform: 'translateY(-50%)',
             }}
           >
             <button
-              className="btn btn-success rounded-circle"
-              style={{ width: '40px', height: '40px' }}
+              className="btn btn-success"
+              style={{
+                width: '60px',
+                height: '40px',
+                borderRadius: '20px',
+              }}
             >
               &rarr;
             </button>
