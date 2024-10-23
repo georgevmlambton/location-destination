@@ -10,6 +10,8 @@ import VerifyEmail from './pages/VerifyEmail';
 import { ForgotPassword } from './pages/ForgotPassword';
 import { Callback } from './pages/Callback';
 import { Profile } from './pages/profile';
+import { FindARide } from './pages/findARide';
+
 import './App.css';
 
 const router = createBrowserRouter([
@@ -40,6 +42,10 @@ const router = createBrowserRouter([
   {
     path: '/profile',
     element: <AuthenticatedRoute element={<Profile />} />,
+  },
+  {
+    path: '/find-a-ride',
+    element: <AuthenticatedRoute element={<FindARide />} />,
   },
 ]);
 
