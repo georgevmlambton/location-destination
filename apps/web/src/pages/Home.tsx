@@ -41,6 +41,7 @@ export default function Home() {
               background: 'white',
               cursor: 'pointer',
               position: 'absolute',
+              zIndex: 10,
               top: '10px',
               right: '10px',
             }}
