@@ -68,14 +68,15 @@ export function FindARide() {
           justifyContent: 'space-between',
         }}
       >
+
         <Formik
           initialValues={{ pickup: '', dropoff: '' }}
           validationSchema={validationSchema}
           onSubmit={(values) => submit(values.pickup, values.dropoff)}
         >
-          {({ errors, touched }) => (
+          {({ errors, touched, values }) => (
             <Form className="d-flex flex-column">
-              <div className='mb-4'>
+              <div className="mb-4">
                 <div className="position-relative mb-0">
                   <span className="position-absolute top-50 translate-middle-y ms-3">
                     <i className="bi bi-geo-alt"></i>
@@ -124,12 +125,14 @@ export function FindARide() {
                 className="btn btn-success rounded-pill w-100 py-2 fs-4"
                 style={{ backgroundColor: '#00634B', border: 'none', marginTop: '60%', zIndex: 1 }}
                 disabled={loading}
+                onClick={() => navigate('/rideList', { state: { pickup: values.pickup, dropoff: values.dropoff } })}
               >
                 Find a Ride
               </button>
             </Form>
           )}
         </Formik>
+
       </div>
     </div>
   );
