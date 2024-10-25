@@ -10,6 +10,7 @@ import background from '../../assets/background.png';
 import { Formik, Field, Form, ErrorMessage } from 'formik';
 import { useNavigate, useLocation } from 'react-router-dom';
 import * as yup from 'yup';
+import { Button, Modal } from 'react-bootstrap';
 
 type Ride = {
   id: number;
@@ -22,9 +23,30 @@ type Ride = {
 };
 
 const rideList: Ride[] = [
-  { id: 1, car: '2022 Nissan Leaf', type: 'Electric', icon: lightning, waitTime: '2 min', backgroundImage: rideList1 },
-  { id: 2, car: '2018 Toyota Camry', type: 'Hybrid', icons: [lightning, fuel], waitTime: '3 min', backgroundImage: rideList2 },
-  { id: 3, car: '2011 Chevrolet Cruze', type: 'Gas', icon: fuel, waitTime: '7 min', backgroundImage: rideList3 },
+  {
+    id: 1,
+    car: '2022 Nissan Leaf',
+    type: 'Electric',
+    icon: lightning,
+    waitTime: '2 min',
+    backgroundImage: rideList1,
+  },
+  {
+    id: 2,
+    car: '2018 Toyota Camry',
+    type: 'Hybrid',
+    icons: [lightning, fuel],
+    waitTime: '3 min',
+    backgroundImage: rideList2,
+  },
+  {
+    id: 3,
+    car: '2011 Chevrolet Cruze',
+    type: 'Gas',
+    icon: fuel,
+    waitTime: '7 min',
+    backgroundImage: rideList3,
+  },
 ];
 
 const validationSchema = yup.object().shape({
@@ -52,35 +74,18 @@ export function RideList() {
   };
 
   return (
-    <div
-      className="d-flex flex-column align-items-center position-relative"
-      style={{
-        height: '100vh',
-        background:
-          'linear-gradient(180deg, rgba(189,229,199,1) 0%, rgba(248,248,248,1) 30%, rgba(255,255,255,1) 100%)',
-      }}
-    >
-      <img
-        className="position-absolute"
-        src={background}
-        style={{
-          height: 'auto',
-          bottom: '-38%',
-          left: '-49%',
-          opacity: '24%',
-          width: '160%',
-        }}
-      />
-
+    <div className="d-flex flex-column align-items-center position-relative">
       <div className="p-4 pb-5 position-relative w-100">
-        <NavButton icon={arrowLeft} onClick={() => window.history.back()} />
+        <NavButton icon={arrowLeft} onClick={handleCancelClick} />
       </div>
 
       <Formik
         initialValues={{ pickup, dropoff }}
         validationSchema={validationSchema}
         onSubmit={(values) => {
-          navigate('/find-a-ride', { state: { pickup: values.pickup, dropoff: values.dropoff } });
+          navigate('/find-a-ride', {
+            state: { pickup: values.pickup, dropoff: values.dropoff },
+          });
         }}
       >
         {({ errors, touched }) => (
@@ -94,7 +99,9 @@ export function RideList() {
                   type="text"
                   placeholder="Pickup Address"
                   className={`form-control py-2 ps-5 fs-5 ${
-                    touched.pickup && errors.pickup ? 'border-danger' : 'border-secondary'
+                    touched.pickup && errors.pickup
+                      ? 'border-danger'
+                      : 'border-secondary'
                   }`}
                   name="pickup"
                   style={{
@@ -114,7 +121,9 @@ export function RideList() {
                   type="text"
                   placeholder="Drop-off Address"
                   className={`form-control py-2 ps-5 fs-5 ${
-                    touched.dropoff && errors.dropoff ? 'border-danger' : 'border-secondary'
+                    touched.dropoff && errors.dropoff
+                      ? 'border-danger'
+                      : 'border-secondary'
                   }`}
                   name="dropoff"
                   style={{
@@ -126,8 +135,16 @@ export function RideList() {
               </div>
             </div>
 
-            <ErrorMessage name="pickup" className="text-danger ms-2" component="p" />
-            <ErrorMessage name="dropoff" className="text-danger ms-2" component="p" />
+            <ErrorMessage
+              name="pickup"
+              className="text-danger ms-2"
+              component="p"
+            />
+            <ErrorMessage
+              name="dropoff"
+              className="text-danger ms-2"
+              component="p"
+            />
           </Form>
         )}
       </Formik>
@@ -174,7 +191,11 @@ export function RideList() {
                         src={ride.icon}
                         alt={`${ride.type} icon`}
                         className="ms-2"
-                        style={{ width: '24px', height: '24px', filter: 'invert(100%) brightness(100%)' }}
+                        style={{
+                          width: '24px',
+                          height: '24px',
+                          filter: 'invert(100%) brightness(100%)',
+                        }}
                       />
                     )}
                     {ride.icons &&
@@ -184,7 +205,11 @@ export function RideList() {
                           src={icon}
                           alt={`${ride.type} icon ${index + 1}`}
                           className="ms-2"
-                          style={{ width: '24px', height: '24px', filter: 'invert(100%) brightness(100%)' }}
+                          style={{
+                            width: '24px',
+                            height: '24px',
+                            filter: 'invert(100%) brightness(100%)',
+                          }}
                         />
                       ))}
                   </small>
@@ -215,35 +240,33 @@ export function RideList() {
       </button>
 
       {showModal && (
-        <div
-          className="modal d-block position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex justify-content-center align-items-center"
-          style={{ zIndex: 1050 }}
+        <Modal
+          show
+          onHide={handleCloseModal}
+          keyboard={false}
+          style={{ marginTop: '62px' }}
         >
-          <div className="modal-dialog" style={{ width: '70%' }}>
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Are you sure you want to cancel your ride?</h5>
-              </div>
-              <div className="modal-body">
-                <p>Do you really want to cancel the ride? This action cannot be undone.</p>
-              </div>
-              <div className="modal-footer">
-                <button
-                  className="btn btn-outline-secondary"
-                  onClick={handleCloseModal}
-                >
-                  No
-                </button>
-                <button
-                  className="btn btn-danger"
-                  onClick={handleYesCancel}
-                >
-                  Yes, Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+          <Modal.Header closeButton className="border-0">
+            <Modal.Title>Cancel Ride</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>Do you really want to cancel your ride?</Modal.Body>
+          <Modal.Footer className="border-0">
+            <Button
+              className="rounded-pill"
+              variant="outline-dark"
+              onClick={handleCloseModal}
+            >
+              Close
+            </Button>
+            <Button
+              className="rounded-pill"
+              variant="danger"
+              onClick={handleYesCancel}
+            >
+              Yes, Cancel
+            </Button>
+          </Modal.Footer>
+        </Modal>
       )}
     </div>
   );
