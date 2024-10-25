@@ -1,7 +1,6 @@
 import { useContext } from 'react';
 import personFill from '../assets/person-fill.svg';
 import findOfferRide from '../assets/find-offer-ride.svg';
-import background from '../assets/background.png';
 import { UserContext } from '../providers/user-provider';
 import { useNavigate } from 'react-router-dom';
 
@@ -10,27 +9,10 @@ export default function Home() {
   const navigate = useNavigate();
 
   return (
-    <div
-      className="w-100 h-100 d-flex flex-column align-items-center"
-      style={{
-        background:
-          'linear-gradient(180deg, rgba(189,229,199,1) 0%, rgba(248,248,248,1) 30%, rgba(255,255,255,1) 100%)',
-      }}
-    >
-      <img
-        className="position-absolute"
-        src={background}
-        style={{
-          height: 'auto',
-          bottom: '-38%',
-          left: '-49%',
-          opacity: '24%',
-          width: '160%',
-        }}
-      />
+    <div className="w-100 h-100 d-flex flex-column align-items-center">
       <div className="p-4 align-self-stretch">
         <div className="d-flex justify-content-between position-relative">
-        <img
+          <img
             className="rounded-circle"
             src={profile?.photoUrl || personFill}
             alt="Profile Avatar"
@@ -50,10 +32,10 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="p-4 pb-5 position-relative w-100">
-        
-      </div>
-      <h3 className="text-dark-emphasis text-center mb-4">Welcome, {profile?.name} </h3>
+      <div className="p-4 pb-5 position-relative w-100"></div>
+      <h3 className="text-dark-emphasis text-center mb-4">
+        Welcome, {profile?.name}{' '}
+      </h3>
 
       <div className="w-75 mt-4">
         {profile?.type === 'Rider' && (
