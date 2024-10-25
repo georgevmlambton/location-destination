@@ -6,6 +6,7 @@ import rideList2 from '../../assets/ride-list-2.svg';
 import rideList3 from '../../assets/ride-list-3.svg';
 import { NavButton } from '../../components/nav/NavButton';
 import arrowLeft from '../../assets/arrow-left.svg';
+import background from '../../assets/background.png';
 import { Formik, Field, Form, ErrorMessage } from 'formik';
 import { useNavigate, useLocation } from 'react-router-dom';
 import * as yup from 'yup';
@@ -33,10 +34,22 @@ const validationSchema = yup.object().shape({
 
 export function RideList() {
   const [rides, setRides] = useState<Ride[]>(rideList);
+  const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
-
   const location = useLocation();
-  const { pickup = '', dropoff = '' } = location.state || {}; // Retrieve the passed state
+  const { pickup = '', dropoff = '' } = location.state || {};
+
+  const handleCancelClick = () => {
+    setShowModal(true);
+  };
+
+  const handleYesCancel = () => {
+    navigate('/find-a-ride');
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+  };
 
   return (
     <div
@@ -47,12 +60,24 @@ export function RideList() {
           'linear-gradient(180deg, rgba(189,229,199,1) 0%, rgba(248,248,248,1) 30%, rgba(255,255,255,1) 100%)',
       }}
     >
+      <img
+        className="position-absolute"
+        src={background}
+        style={{
+          height: 'auto',
+          bottom: '-38%',
+          left: '-49%',
+          opacity: '24%',
+          width: '160%',
+        }}
+      />
+
       <div className="p-4 pb-5 position-relative w-100">
         <NavButton icon={arrowLeft} onClick={() => window.history.back()} />
       </div>
 
       <Formik
-        initialValues={{ pickup, dropoff }} // Use passed values
+        initialValues={{ pickup, dropoff }}
         validationSchema={validationSchema}
         onSubmit={(values) => {
           navigate('/find-a-ride', { state: { pickup: values.pickup, dropoff: values.dropoff } });
@@ -122,8 +147,8 @@ export function RideList() {
                   backgroundImage: `url(${ride.backgroundImage})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
-                  width: '80%',
-                  height: '200px',
+                  width: '75%',
+                  height: '150px',
                   borderRadius: '10px',
                   boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
                   display: 'flex',
@@ -142,7 +167,27 @@ export function RideList() {
                   }}
                 >
                   <p className="mb-0">{ride.car}</p>
-                  <small>{ride.type}</small>
+                  <small className="d-flex align-items-center">
+                    {ride.type}
+                    {ride.icon && (
+                      <img
+                        src={ride.icon}
+                        alt={`${ride.type} icon`}
+                        className="ms-2"
+                        style={{ width: '24px', height: '24px', filter: 'invert(100%) brightness(100%)' }}
+                      />
+                    )}
+                    {ride.icons &&
+                      ride.icons.map((icon, index) => (
+                        <img
+                          key={index}
+                          src={icon}
+                          alt={`${ride.type} icon ${index + 1}`}
+                          className="ms-2"
+                          style={{ width: '24px', height: '24px', filter: 'invert(100%) brightness(100%)' }}
+                        />
+                      ))}
+                  </small>
                 </div>
                 <p
                   style={{
@@ -162,12 +207,44 @@ export function RideList() {
       </div>
 
       <button
-        onClick={() => navigate('/find-a-ride')}
+        onClick={handleCancelClick}
         className="btn btn-danger rounded-pill mt-4"
-        style={{ width: '80%' }}
+        style={{ zIndex: 1, width: '80%', marginBottom: '20px' }}
       >
         Cancel
       </button>
+
+      {showModal && (
+        <div
+          className="modal d-block position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex justify-content-center align-items-center"
+          style={{ zIndex: 1050 }}
+        >
+          <div className="modal-dialog" style={{ width: '70%' }}>
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Are you sure you want to cancel your ride?</h5>
+              </div>
+              <div className="modal-body">
+                <p>Do you really want to cancel the ride? This action cannot be undone.</p>
+              </div>
+              <div className="modal-footer">
+                <button
+                  className="btn btn-outline-secondary"
+                  onClick={handleCloseModal}
+                >
+                  No
+                </button>
+                <button
+                  className="btn btn-danger"
+                  onClick={handleYesCancel}
+                >
+                  Yes, Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
