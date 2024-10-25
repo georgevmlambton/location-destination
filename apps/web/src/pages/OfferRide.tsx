@@ -1,52 +1,23 @@
 import arrowLeft from '../assets/arrow-left.svg';
 import background from '../assets/background.png';
 import { NavButton } from '../components/nav/NavButton';
-import { ToastContext } from '../providers/toast-provider';
 import { useNavigate } from 'react-router-dom';
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import mapboxgl from 'mapbox-gl';
-import { io, Socket } from 'socket.io-client';
-import { auth } from '../firebase';
+import { usePosition } from '../hook/usePosition';
+import { useSocket } from '../hook/useSocket';
 
 export function OfferRide() {
-  const toast = useContext(ToastContext);
   const navigate = useNavigate();
+  const position = usePosition();
+  const socket = useSocket();
 
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const mapMarker = useRef<mapboxgl.Marker>(new mapboxgl.Marker());
 
   const [showEndDialog, setShowEndDialog] = useState(false);
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const [position, setPosition] = useState<GeolocationPosition | null>(null);
-
-  useEffect(() => {
-    let cancel = false;
-
-    const initializeSocket = async () => {
-      const token = await auth.currentUser?.getIdToken();
-
-      if (cancel) {
-        return;
-      }
-
-      const socket = io(import.meta.env.VITE_API_URL, {
-        extraHeaders: { Authorization: `Bearer ${token}` },
-      });
-
-      setSocket(socket);
-    };
-
-    if (!socket) {
-      initializeSocket();
-    }
-
-    return () => {
-      cancel = true;
-      socket?.disconnect();
-    };
-  }, [socket]);
 
   useEffect(() => {
     if (mapContainerRef.current && !mapRef.current) {
@@ -55,18 +26,6 @@ export function OfferRide() {
       });
     }
   }, []);
-
-  useEffect(() => {
-    const id = window.navigator.geolocation.watchPosition(
-      setPosition,
-      (error) => toast.show(error.message, 'danger'),
-      { enableHighAccuracy: true }
-    );
-
-    return () => {
-      window.navigator.geolocation.clearWatch(id);
-    };
-  }, [toast]);
 
   useEffect(() => {
     if (socket && position) {
