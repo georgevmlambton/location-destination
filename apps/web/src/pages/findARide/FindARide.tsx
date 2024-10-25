@@ -54,7 +54,7 @@ export function FindARide() {
           validationSchema={validationSchema}
           onSubmit={(values) => submit(values.pickup, values.dropoff)}
         >
-          {({ errors, touched }) => (
+          {({ errors, touched, values }) => (
             <Form className="d-flex flex-column">
               <div className="mb-4">
                 <div className="position-relative mb-0">
@@ -123,6 +123,11 @@ export function FindARide() {
                     zIndex: 1,
                   }}
                   disabled={loading}
+                  onClick={() =>
+                    navigate('/rideList', {
+                      state: { pickup: values.pickup, dropoff: values.dropoff },
+                    })
+                  }
                 >
                   Find a Ride
                 </button>

@@ -10,7 +10,7 @@ import VerifyEmail from './pages/VerifyEmail';
 import { ForgotPassword } from './pages/ForgotPassword';
 import { Callback } from './pages/Callback';
 import { Profile } from './pages/profile';
-import { FindARide } from './pages/findARide';
+import { FindARide, RideList } from './pages/findARide';
 
 import './App.css';
 import { MainLayout } from './layout/MainLayout';
@@ -27,6 +27,10 @@ const router = createBrowserRouter([
       {
         path: '/find-a-ride',
         element: <AuthenticatedRoute element={<FindARide />} />,
+      },
+      {
+        path: '/rideList',
+        element: <AuthenticatedRoute element={<RideList />} />,
       },
     ],
   },
