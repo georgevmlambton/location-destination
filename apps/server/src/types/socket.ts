@@ -2,7 +2,7 @@ import { DecodedIdToken } from 'firebase-admin/lib/auth/token-verifier';
 import * as socketio from 'socket.io';
 
 export type ClientToServerEvents = {
-  offerRide: (currentLocation: string) => void;
+  offerRide: (currentLocation: { lat: number; lng: number }) => void;
 };
 
 export type ServerToClientEvents = {

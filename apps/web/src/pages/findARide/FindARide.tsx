@@ -19,6 +19,7 @@ export function FindARide() {
   const navigate = useNavigate();
 
   async function submit(pickup: string, dropoff: string) {
+    console.log(pickup, dropoff);
     try {
       setLoading(true);
       await FindARide();
@@ -75,7 +76,7 @@ export function FindARide() {
         >
           {({ errors, touched }) => (
             <Form className="d-flex flex-column">
-              <div className='mb-4'>
+              <div className="mb-4">
                 <div className="position-relative mb-0">
                   <span className="position-absolute top-50 translate-middle-y ms-3">
                     <i className="bi bi-geo-alt"></i>
@@ -84,7 +85,9 @@ export function FindARide() {
                     type="text"
                     placeholder="Pickup Address"
                     className={`form-control py-2 ps-5 fs-5 ${
-                      touched.pickup && errors.pickup ? 'border-danger' : 'border-secondary'
+                      touched.pickup && errors.pickup
+                        ? 'border-danger'
+                        : 'border-secondary'
                     }`}
                     name="pickup"
                     style={{
@@ -104,7 +107,9 @@ export function FindARide() {
                     type="text"
                     placeholder="Drop-off Address"
                     className={`form-control py-2 ps-5 fs-5 ${
-                      touched.dropoff && errors.dropoff ? 'border-danger' : 'border-secondary'
+                      touched.dropoff && errors.dropoff
+                        ? 'border-danger'
+                        : 'border-secondary'
                     }`}
                     name="dropoff"
                     style={{
@@ -116,13 +121,26 @@ export function FindARide() {
                 </div>
               </div>
 
-              <ErrorMessage name="pickup" className="text-danger ms-2" component="p" />
-              <ErrorMessage name="dropoff" className="text-danger ms-2" component="p" />
+              <ErrorMessage
+                name="pickup"
+                className="text-danger ms-2"
+                component="p"
+              />
+              <ErrorMessage
+                name="dropoff"
+                className="text-danger ms-2"
+                component="p"
+              />
 
               <button
                 type="submit"
                 className="btn btn-success rounded-pill w-100 py-2 fs-4"
-                style={{ backgroundColor: '#00634B', border: 'none', marginTop: '60%', zIndex: 1 }}
+                style={{
+                  backgroundColor: '#00634B',
+                  border: 'none',
+                  marginTop: '60%',
+                  zIndex: 1,
+                }}
                 disabled={loading}
               >
                 Find a Ride
