@@ -13,11 +13,22 @@ import { Profile } from './pages/profile';
 import { FindARide } from './pages/findARide';
 
 import './App.css';
+import { MainLayout } from './layout/MainLayout';
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <AuthenticatedRoute element={<Home />} />,
+    element: <AuthenticatedRoute element={<MainLayout />} />,
+    children: [
+      {
+        path: '',
+        element: <Home />,
+      },
+      {
+        path: '/find-a-ride',
+        element: <AuthenticatedRoute element={<FindARide />} />,
+      },
+    ],
   },
   {
     path: '/register',
@@ -42,10 +53,6 @@ const router = createBrowserRouter([
   {
     path: '/profile',
     element: <AuthenticatedRoute element={<Profile />} />,
-  },
-  {
-    path: '/find-a-ride',
-    element: <AuthenticatedRoute element={<FindARide />} />,
   },
 ]);
 
