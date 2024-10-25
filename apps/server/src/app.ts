@@ -6,6 +6,7 @@ import bodyParser from 'body-parser';
 import { profileRouter } from './route/profile';
 import * as config from './config';
 import { createServer } from 'http';
+import { rideRouter } from './route/ride';
 const app = express();
 
 app.use(cors(config.corsOptions));
@@ -19,6 +20,8 @@ app.use(bodyParser.json());
 app.use(healthRouter);
 
 app.use(profileRouter);
+
+app.use(rideRouter);
 
 export const server = createServer(app);
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import lightning from '../../assets/lightning-charge-fill.svg';
 import fuel from '../../assets/fuel-pump-fill.svg';
 import rideList1 from '../../assets/ride-list-1.svg';
@@ -6,11 +6,12 @@ import rideList2 from '../../assets/ride-list-2.svg';
 import rideList3 from '../../assets/ride-list-3.svg';
 import { NavButton } from '../../components/nav/NavButton';
 import arrowLeft from '../../assets/arrow-left.svg';
-import background from '../../assets/background.png';
 import { Formik, Field, Form, ErrorMessage } from 'formik';
 import { useNavigate, useLocation } from 'react-router-dom';
 import * as yup from 'yup';
 import { Button, Modal } from 'react-bootstrap';
+import { getInstance } from '../../axios';
+import { RideResponse } from '@location-destination/types/src/requests/ride';
 
 type Ride = {
   id: number;
@@ -59,13 +60,15 @@ export function RideList() {
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { pickup = '', dropoff = '' } = location.state || {};
+  const ride: RideResponse = location.state.ride;
 
   const handleCancelClick = () => {
     setShowModal(true);
   };
 
-  const handleYesCancel = () => {
+  const handleYesCancel = async () => {
+    const axios = await getInstance();
+    await axios.post(`/api/ride/${ride.id}/cancel`);
     navigate('/find-a-ride');
   };
 
@@ -80,7 +83,10 @@ export function RideList() {
       </div>
 
       <Formik
-        initialValues={{ pickup, dropoff }}
+        initialValues={{
+          pickup: ride.pickupAddress,
+          dropoff: ride.dropoffAddress,
+        }}
         validationSchema={validationSchema}
         onSubmit={(values) => {
           navigate('/find-a-ride', {
