@@ -1,12 +1,15 @@
+import { NearbyRide } from '@location-destination/types/src/ride';
 import { DecodedIdToken } from 'firebase-admin/lib/auth/token-verifier';
 import * as socketio from 'socket.io';
 
 export type ClientToServerEvents = {
   offerRide: (currentLocation: { lat: number; lng: number }) => void;
+  findRide: (rideId: string) => void;
 };
 
 export type ServerToClientEvents = {
   invalidAddress: (error: string) => void;
+  nearbyRides: (nearbyRides: NearbyRide[]) => void;
 };
 
 export type SocketData = {

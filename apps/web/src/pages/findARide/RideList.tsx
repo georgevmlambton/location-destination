@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import lightning from '../../assets/lightning-charge-fill.svg';
 import fuel from '../../assets/fuel-pump-fill.svg';
 import rideList1 from '../../assets/ride-list-1.svg';
@@ -12,55 +12,55 @@ import * as yup from 'yup';
 import { Button, Modal } from 'react-bootstrap';
 import { getInstance } from '../../axios';
 import { RideResponse } from '@location-destination/types/src/requests/ride';
-
-type Ride = {
-  id: number;
-  car: string;
-  type: string;
-  icon?: string;
-  icons?: string[];
-  waitTime: string;
-  backgroundImage: string;
-};
-
-const rideList: Ride[] = [
-  {
-    id: 1,
-    car: '2022 Nissan Leaf',
-    type: 'Electric',
-    icon: lightning,
-    waitTime: '2 min',
-    backgroundImage: rideList1,
-  },
-  {
-    id: 2,
-    car: '2018 Toyota Camry',
-    type: 'Hybrid',
-    icons: [lightning, fuel],
-    waitTime: '3 min',
-    backgroundImage: rideList2,
-  },
-  {
-    id: 3,
-    car: '2011 Chevrolet Cruze',
-    type: 'Gas',
-    icon: fuel,
-    waitTime: '7 min',
-    backgroundImage: rideList3,
-  },
-];
+import { NearbyRide } from '@location-destination/types/src/ride';
+import { useSocket } from '../../hook/useSocket';
 
 const validationSchema = yup.object().shape({
   pickup: yup.string().required('Pickup is required'),
   dropoff: yup.string().required('Dropoff is required'),
 });
 
+function getVehicleBackground(ride: NearbyRide) {
+  switch (ride.type) {
+    case 'Electric':
+      return rideList1;
+    case 'Hybrid':
+      return rideList2;
+    default:
+      return rideList3;
+  }
+}
+
+function getVehicleIcon(ride: NearbyRide) {
+  switch (ride.type) {
+    case 'Electric':
+      return [lightning];
+    case 'Hybrid':
+      return [lightning, fuel];
+    default:
+      return [fuel];
+  }
+}
+
 export function RideList() {
-  const [rides, setRides] = useState<Ride[]>(rideList);
+  const [rides, setRides] = useState<NearbyRide[]>([]);
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const ride: RideResponse = location.state.ride;
+
+  const socket = useSocket();
+
+  useEffect(() => {
+    if (socket) {
+      socket.emit('findRide', ride.id);
+      socket.on('nearbyRides', setRides);
+    }
+
+    return () => {
+      socket?.off('nearbyRides', setRides);
+    };
+  }, [socket, ride]);
 
   const handleCancelClick = () => {
     setShowModal(true);
@@ -77,7 +77,7 @@ export function RideList() {
   };
 
   return (
-    <div className="d-flex flex-column align-items-center position-relative">
+    <div className="d-flex flex-column align-items-center position-relative h-100">
       <div className="p-4 pb-5 position-relative w-100">
         <NavButton icon={arrowLeft} onClick={handleCancelClick} />
       </div>
@@ -157,7 +157,7 @@ export function RideList() {
 
       <h4 className="text-center mt-4">Looking for nearby rides...</h4>
 
-      <div className="w-100 mt-4">
+      <div className="w-100 mt-4 text-center">
         {rides.length === 0 ? (
           <p>No rides found.</p>
         ) : (
@@ -167,7 +167,7 @@ export function RideList() {
                 key={ride.id}
                 className="position-relative mb-4"
                 style={{
-                  backgroundImage: `url(${ride.backgroundImage})`,
+                  backgroundImage: `url(${getVehicleBackground(ride)})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
                   width: '75%',
@@ -192,10 +192,11 @@ export function RideList() {
                   <p className="mb-0">{ride.car}</p>
                   <small className="d-flex align-items-center">
                     {ride.type}
-                    {ride.icon && (
+                    {getVehicleIcon(ride).map((icon, index) => (
                       <img
-                        src={ride.icon}
-                        alt={`${ride.type} icon`}
+                        key={index}
+                        src={icon}
+                        alt={`${ride.type} icon ${index + 1}`}
                         className="ms-2"
                         style={{
                           width: '24px',
@@ -203,21 +204,7 @@ export function RideList() {
                           filter: 'invert(100%) brightness(100%)',
                         }}
                       />
-                    )}
-                    {ride.icons &&
-                      ride.icons.map((icon, index) => (
-                        <img
-                          key={index}
-                          src={icon}
-                          alt={`${ride.type} icon ${index + 1}`}
-                          className="ms-2"
-                          style={{
-                            width: '24px',
-                            height: '24px',
-                            filter: 'invert(100%) brightness(100%)',
-                          }}
-                        />
-                      ))}
+                    ))}
                   </small>
                 </div>
                 <p
@@ -229,7 +216,7 @@ export function RideList() {
                     fontWeight: 'bold',
                   }}
                 >
-                  {ride.waitTime}
+                  {ride.waitTimeMinutes} min
                 </p>
               </div>
             ))}
@@ -237,13 +224,17 @@ export function RideList() {
         )}
       </div>
 
-      <button
-        onClick={handleCancelClick}
-        className="btn btn-danger rounded-pill mt-4"
-        style={{ zIndex: 1, width: '80%', marginBottom: '20px' }}
-      >
-        Cancel
-      </button>
+      <div className="position-absolute bottom-0 start-0 w-100 p-4 pb-5">
+        <button
+          onClick={handleCancelClick}
+          className="btn btn-danger rounded-pill w-100 py-2 fs-4"
+          style={{
+            zIndex: 1,
+          }}
+        >
+          Cancel
+        </button>
+      </div>
 
       {showModal && (
         <Modal
