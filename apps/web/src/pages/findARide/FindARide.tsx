@@ -12,6 +12,7 @@ import {
   RideResponse,
 } from '@location-destination/types/src/requests/ride';
 import { AxiosError } from 'axios';
+import { ProfileField } from '../profile/ProfileField';
 
 const validationSchema = yup.object().shape({
   pickup: yup.string().required('Pickup is required'),
@@ -23,12 +24,13 @@ export function FindARide() {
   const toast = useContext(ToastContext);
   const navigate = useNavigate();
 
-  async function submit(pickup: string, dropoff: string) {
+  async function submit(pickup: string, dropoff: string, passengers: number) {
     try {
       setLoading(true);
       const req: RideCreateRequest = {
         pickupAddress: pickup,
         dropoffAddress: dropoff,
+        passengers,
       };
       const axios = await getInstance();
       const response = await axios.post<RideResponse>('/api/ride', req);
@@ -67,11 +69,13 @@ export function FindARide() {
         }}
       >
         <Formik
-          initialValues={{ pickup: '', dropoff: '' }}
+          initialValues={{ pickup: '', dropoff: '', passengers: 1 }}
           validationSchema={validationSchema}
-          onSubmit={(values) => submit(values.pickup, values.dropoff)}
+          onSubmit={(values) =>
+            submit(values.pickup, values.dropoff, values.passengers)
+          }
         >
-          {({ errors, touched }) => (
+          {({ errors, touched, setFieldValue, values }) => (
             <Form className="d-flex flex-column">
               <div className="mb-4">
                 <div className="position-relative mb-0">
@@ -128,6 +132,58 @@ export function FindARide() {
                 className="text-danger ms-2"
                 component="p"
               />
+
+              <ProfileField
+                className="mt-4"
+                errors={errors}
+                touched={touched}
+                label="Number of Passenger"
+              >
+                <div className="container">
+                  <div className="row justify-content-start">
+                    <button
+                      type="button"
+                      className="col col-auto btn text-white d-flex justify-content-center align-items-center p-0 pb-1"
+                      style={{
+                        backgroundColor: '#00634B',
+                        borderRadius: '50%',
+                        width: '32px',
+                        height: '32px',
+                      }}
+                      onClick={() =>
+                        setFieldValue(
+                          'passengers',
+                          Math.max(1, values.passengers - 1)
+                        )
+                      }
+                    >
+                      -
+                    </button>
+                    <input
+                      type="number"
+                      className={`col col-1 form-control w-auto text-center border-0 user-select-none`}
+                      name={'vehicleCapacity'}
+                      readOnly
+                      value={values.passengers}
+                    />
+                    <button
+                      type="button"
+                      className="col col-auto btn text-white d-flex justify-content-center align-items-center p-0 pb-1"
+                      style={{
+                        backgroundColor: '#00634B',
+                        borderRadius: '50%',
+                        width: '32px',
+                        height: '32px',
+                      }}
+                      onClick={() =>
+                        setFieldValue('vehicleCapacity', values.passengers + 1)
+                      }
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              </ProfileField>
 
               <div className="position-absolute bottom-0 start-0 w-100 p-4 pb-5">
                 <button

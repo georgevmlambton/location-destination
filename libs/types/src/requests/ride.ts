@@ -3,6 +3,7 @@ import * as yup from 'yup';
 export class RideCreateRequest {
   pickupAddress: string;
   dropoffAddress: string;
+  passengers: number;
 
   constructor(reqBody: unknown) {
     const schema = yup.object({
@@ -14,12 +15,18 @@ export class RideCreateRequest {
         .string()
         .min(1, 'Drop-off address cannot be empty')
         .required('Drop-off address is required'),
+      passengers: yup
+        .number()
+        .min(1, 'Cannot book for less than 1 passenger')
+        .required(),
     });
 
-    const { pickupAddress, dropoffAddress } = schema.validateSync(reqBody);
+    const { pickupAddress, dropoffAddress, passengers } =
+      schema.validateSync(reqBody);
 
     this.pickupAddress = pickupAddress;
     this.dropoffAddress = dropoffAddress;
+    this.passengers = passengers;
   }
 }
 
