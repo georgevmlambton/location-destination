@@ -9,7 +9,6 @@ import {
   Socket,
 } from './types/socket';
 import { redis } from './redis';
-import { geocodeAddress } from './maps';
 
 const redisEvents = await redis.duplicate().connect();
 
@@ -24,27 +23,21 @@ const onDisconnect = (socket: Socket) => () => {
   console.log(`Client ${socket.data.user.email} disconnected`);
 };
 
-const onOfferRide = (socket: Socket) => async (currentLocation: string) => {
-  const location = await geocodeAddress(currentLocation);
+const onOfferRide =
+  (socket: Socket) => async (location: { lat: number; lng: number }) => {
+    await redis.GEOADD('drivers', {
+      longitude: location.lng,
+      latitude: location.lat,
+      member: socket.data.user.uid,
+    });
 
-  if (!location) {
-    socket.emit('invalidAddress', currentLocation);
-    return;
-  }
-
-  await redis.GEOADD('drivers', {
-    longitude: location.lng,
-    latitude: location.lat,
-    member: socket.data.user.uid,
-  });
-
-  redisEvents.publish('rides', 'driverLocationUpdate');
-
-  socket.on('disconnect', async () => {
-    await redis.ZREM('drivers', socket.data.user.uid);
     redisEvents.publish('rides', 'driverLocationUpdate');
-  });
-};
+
+    socket.on('disconnect', async () => {
+      await redis.ZREM('drivers', socket.data.user.uid);
+      redisEvents.publish('rides', 'driverLocationUpdate');
+    });
+  };
 
 export function initializeSocket(server: HttpServer) {
   const io = new SocketIOServer<

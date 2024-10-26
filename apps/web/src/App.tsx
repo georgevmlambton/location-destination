@@ -11,9 +11,14 @@ import { ForgotPassword } from './pages/ForgotPassword';
 import { Callback } from './pages/Callback';
 import { Profile } from './pages/profile';
 import { FindARide, RideList } from './pages/findARide';
-
+import { OfferRide } from './pages/OfferRide';
+import mapboxgl from 'mapbox-gl';
+import './App.css';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import './App.css';
 import { MainLayout } from './layout/MainLayout';
+
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
 const router = createBrowserRouter([
   {
@@ -31,6 +36,10 @@ const router = createBrowserRouter([
       {
         path: '/rideList',
         element: <AuthenticatedRoute element={<RideList />} />,
+      },
+      {
+        path: '/offer-a-ride',
+        element: <AuthenticatedRoute element={<OfferRide />} />,
       },
     ],
   },
