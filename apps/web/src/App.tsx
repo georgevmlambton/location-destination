@@ -10,18 +10,38 @@ import VerifyEmail from './pages/VerifyEmail';
 import { ForgotPassword } from './pages/ForgotPassword';
 import { Callback } from './pages/Callback';
 import { Profile } from './pages/profile';
-import { FindARide } from './pages/findARide';
+import { FindARide, RideList } from './pages/findARide';
 import { OfferRide } from './pages/OfferRide';
 import mapboxgl from 'mapbox-gl';
 import './App.css';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import './App.css';
+import { MainLayout } from './layout/MainLayout';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <AuthenticatedRoute element={<Home />} />,
+    element: <AuthenticatedRoute element={<MainLayout />} />,
+    children: [
+      {
+        path: '',
+        element: <Home />,
+      },
+      {
+        path: '/find-a-ride',
+        element: <AuthenticatedRoute element={<FindARide />} />,
+      },
+      {
+        path: '/rideList',
+        element: <AuthenticatedRoute element={<RideList />} />,
+      },
+      {
+        path: '/offer-a-ride',
+        element: <AuthenticatedRoute element={<OfferRide />} />,
+      },
+    ],
   },
   {
     path: '/register',
@@ -46,14 +66,6 @@ const router = createBrowserRouter([
   {
     path: '/profile',
     element: <AuthenticatedRoute element={<Profile />} />,
-  },
-  {
-    path: '/find-a-ride',
-    element: <AuthenticatedRoute element={<FindARide />} />,
-  },
-  {
-    path: '/offer-a-ride',
-    element: <AuthenticatedRoute element={<OfferRide />} />,
   },
 ]);
 

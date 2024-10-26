@@ -1,5 +1,4 @@
 import arrowLeft from '../../assets/arrow-left.svg';
-import background from '../../assets/background.png';
 import { NavButton } from '../../components/nav/NavButton';
 import { ErrorMessage, Field, Form, Formik } from 'formik';
 import * as yup from 'yup';
@@ -34,26 +33,7 @@ export function FindARide() {
   }
 
   return (
-    <div
-      className="d-flex flex-column align-items-center position-relative"
-      style={{
-        height: '100vh',
-        background:
-          'linear-gradient(180deg, rgba(189,229,199,1) 0%, rgba(248,248,248,1) 30%, rgba(255,255,255,1) 100%)',
-      }}
-    >
-      <img
-        className="position-absolute"
-        src={background}
-        style={{
-          height: 'auto',
-          bottom: '-38%',
-          left: '-49%',
-          opacity: '24%',
-          width: '160%',
-        }}
-      />
-
+    <div className="d-flex flex-column align-items-center position-relative h-100 w-100">
       <div className="p-4 pb-5 position-relative w-100">
         <NavButton icon={arrowLeft} onClick={() => navigate('/')} />
       </div>
@@ -74,7 +54,7 @@ export function FindARide() {
           validationSchema={validationSchema}
           onSubmit={(values) => submit(values.pickup, values.dropoff)}
         >
-          {({ errors, touched }) => (
+          {({ errors, touched, values }) => (
             <Form className="d-flex flex-column">
               <div className="mb-4">
                 <div className="position-relative mb-0">
@@ -132,19 +112,26 @@ export function FindARide() {
                 component="p"
               />
 
-              <button
-                type="submit"
-                className="btn btn-success rounded-pill w-100 py-2 fs-4"
-                style={{
-                  backgroundColor: '#00634B',
-                  border: 'none',
-                  marginTop: '60%',
-                  zIndex: 1,
-                }}
-                disabled={loading}
-              >
-                Find a Ride
-              </button>
+              <div className="position-absolute bottom-0 start-0 w-100 p-4 pb-5">
+                <button
+                  type="submit"
+                  className="btn btn-success rounded-pill w-100 py-2 fs-4"
+                  style={{
+                    backgroundColor: '#00634B',
+                    border: 'none',
+                    marginTop: '60%',
+                    zIndex: 1,
+                  }}
+                  disabled={loading}
+                  onClick={() =>
+                    navigate('/rideList', {
+                      state: { pickup: values.pickup, dropoff: values.dropoff },
+                    })
+                  }
+                >
+                  Find a Ride
+                </button>
+              </div>
             </Form>
           )}
         </Formik>
