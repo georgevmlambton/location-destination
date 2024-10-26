@@ -162,7 +162,7 @@ export function FindARide() {
                     <input
                       type="number"
                       className={`col col-1 form-control w-auto text-center border-0 user-select-none`}
-                      name={'vehicleCapacity'}
+                      name={'passengers'}
                       readOnly
                       value={values.passengers}
                     />
@@ -176,7 +176,7 @@ export function FindARide() {
                         height: '32px',
                       }}
                       onClick={() =>
-                        setFieldValue('vehicleCapacity', values.passengers + 1)
+                        setFieldValue('passengers', values.passengers + 1)
                       }
                     >
                       +
