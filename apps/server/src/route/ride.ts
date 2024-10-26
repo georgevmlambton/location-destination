@@ -36,6 +36,7 @@ rideRouter.post('/api/ride', async (req, resp) => {
       pickupAddress: createReq.pickupAddress,
       dropoffAddress: createReq.dropoffAddress,
       state: 'Searching',
+      passengers: createReq.passengers,
       createdBy: user.id,
     }).save();
 
