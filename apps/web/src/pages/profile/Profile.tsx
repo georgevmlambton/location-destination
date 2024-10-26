@@ -401,11 +401,11 @@ export function Profile() {
               )}
 
               {(dirty || file) && isRequiredFieldsFilled(values) && (
-                <div className="d-flex position-fixed bottom-0 end-0 p-4">
+                <div className="d-flex position-fixed bottom-0 end-0 p-3">
                   <button
                     disabled={isSubmitting}
                     onClick={() => resetForm()}
-                    className="btn btn-light d-flex justify-content-center align-content-center p-2 me-3"
+                    className="btn btn-light d-flex justify-content-center align-content-center p-3 me-3"
                     style={{
                       border: '1px solid #CCCCCC',
                       borderRadius: '50%',
@@ -419,7 +419,7 @@ export function Profile() {
                   <button
                     disabled={isSubmitting}
                     type="submit"
-                    className="btn btn-light d-flex justify-content-center align-content-center p-2"
+                    className="btn btn-light d-flex justify-content-center align-content-center p-3"
                     style={{
                       border: '1px solid #CCCCCC',
                       borderRadius: '50%',
