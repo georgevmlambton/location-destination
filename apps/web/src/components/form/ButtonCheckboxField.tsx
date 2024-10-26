@@ -23,14 +23,14 @@ export function ButtonCheckboxField({
           {...(value?.includes(option)
             ? { style: { backgroundColor: '#00634B', border: 'none' } }
             : {})}
-          htmlFor={'userTypeRider-' + option}
+          htmlFor={name + '-' + option}
         >
           <Field
             type="checkbox"
             name={name}
             value={option}
             className="btn-check"
-            id={'userTypeRider-' + option}
+            id={name + '-' + option}
             autoComplete="off"
           />
           {option + ' '}
@@ -38,7 +38,7 @@ export function ButtonCheckboxField({
             <img
               src={checkLg}
               style={{ height: '20px', paddingBottom: '3px' }}
-            ></img>
+              />
           )}
         </label>
       ))}
