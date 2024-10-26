@@ -6,6 +6,12 @@ import { ToastContext } from '../../providers/toast-provider';
 import { FirebaseError } from 'firebase/app';
 import { useNavigate } from 'react-router-dom';
 import { useContext, useState } from 'react';
+import { getInstance } from '../../axios';
+import {
+  RideCreateRequest,
+  RideResponse,
+} from '@location-destination/types/src/requests/ride';
+import { AxiosError } from 'axios';
 
 const validationSchema = yup.object().shape({
   pickup: yup.string().required('Pickup is required'),
@@ -18,13 +24,24 @@ export function FindARide() {
   const navigate = useNavigate();
 
   async function submit(pickup: string, dropoff: string) {
-    console.log(pickup, dropoff);
     try {
       setLoading(true);
-      await FindARide();
+      const req: RideCreateRequest = {
+        pickupAddress: pickup,
+        dropoffAddress: dropoff,
+      };
+      const axios = await getInstance();
+      const response = await axios.post<RideResponse>('/api/ride', req);
+      console.log(response.data.id);
+
+      navigate('/rideList', {
+        state: { ride: response.data },
+      });
     } catch (e) {
       if (e instanceof FirebaseError && e.code === 'auth/invalid-credential') {
         toast.show('Invalid Email/Password', 'danger');
+      } else if (e instanceof AxiosError && e.response?.data?.message) {
+        toast.show(e.response?.data?.message, 'danger');
       } else if (e instanceof Error) {
         toast.show(e.message, 'danger');
       }
@@ -54,7 +71,7 @@ export function FindARide() {
           validationSchema={validationSchema}
           onSubmit={(values) => submit(values.pickup, values.dropoff)}
         >
-          {({ errors, touched, values }) => (
+          {({ errors, touched }) => (
             <Form className="d-flex flex-column">
               <div className="mb-4">
                 <div className="position-relative mb-0">
@@ -123,11 +140,6 @@ export function FindARide() {
                     zIndex: 1,
                   }}
                   disabled={loading}
-                  onClick={() =>
-                    navigate('/rideList', {
-                      state: { pickup: values.pickup, dropoff: values.dropoff },
-                    })
-                  }
                 >
                   Find a Ride
                 </button>
