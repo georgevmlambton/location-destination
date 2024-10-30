@@ -4,6 +4,7 @@ export class RideCreateRequest {
   pickupAddress: string;
   dropoffAddress: string;
   passengers: number;
+  preferredVehicle?: ('Electric' | 'Hybrid' | 'Gas')[];
 
   constructor(reqBody: unknown) {
     const schema = yup.object({
@@ -19,14 +20,23 @@ export class RideCreateRequest {
         .number()
         .min(1, 'Cannot book for less than 1 passenger')
         .required(),
+      preferredVehicle: yup
+        .array()
+        .of(
+          yup
+            .mixed<'Electric' | 'Hybrid' | 'Gas'>()
+            .oneOf(['Electric', 'Hybrid', 'Gas'])
+            .required()
+        ),
     });
 
-    const { pickupAddress, dropoffAddress, passengers } =
+    const { pickupAddress, dropoffAddress, passengers, preferredVehicle } =
       schema.validateSync(reqBody);
 
     this.pickupAddress = pickupAddress;
     this.dropoffAddress = dropoffAddress;
     this.passengers = passengers;
+    this.preferredVehicle = preferredVehicle;
   }
 }
 
@@ -37,4 +47,6 @@ export type RideResponse = {
   pickupAddress: string;
   dropoffAddress: string;
   state: RideState;
+  passengers: number;
+  preferredVehicle?: ('Electric' | 'Hybrid' | 'Gas')[];
 };

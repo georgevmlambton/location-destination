@@ -14,6 +14,8 @@ import { Ride } from './db/ride';
 import { User } from './db/user';
 import { GeoReplyWith } from 'redis';
 import { NearbyRide } from '@location-destination/types/src/ride';
+import { VehicleType } from '@location-destination/types/src/requests/profile';
+import mongoose from 'mongoose';
 
 const redisEvents = await redis.duplicate().connect();
 
@@ -42,10 +44,16 @@ const onOfferRide =
     redis.publish('driverLocationUpdate', '');
   };
 
-const onFindRide = (socket: Socket) => async (rideId: string) => {
+const onFindRide = (socket: Socket) => async (rideId: string, preferredVehicle: VehicleType[], passengers: number) => {
   const user = await User.findOne({ uid: socket.data.user.uid });
 
   if (!user) {
+    socket.disconnect(true);
+    return;
+  }
+
+  if (!mongoose.isValidObjectId(rideId)) {
+    console.error(`Invalid rideId: ${rideId}`);
     socket.disconnect(true);
     return;
   }
@@ -64,7 +72,7 @@ const onFindRide = (socket: Socket) => async (rideId: string) => {
   }
 
   const find = async () => {
-    const nearbyRides = await findNearbyDrivers(pickupCoordinates);
+    const nearbyRides = await findNearbyDrivers(pickupCoordinates, preferredVehicle, passengers);
 
     socket.emit('nearbyRides', nearbyRides);
   };
@@ -78,10 +86,11 @@ const onFindRide = (socket: Socket) => async (rideId: string) => {
   });
 };
 
-async function findNearbyDrivers(pickupCoordinates: {
-  lat: number;
-  lng: number;
-}) {
+async function findNearbyDrivers(
+  pickupCoordinates: { lat: number; lng: number },
+  preferredVehicle: VehicleType[],
+  passengers: number
+) {
   const nearbyDrivers = await redis.geoRadiusWith(
     'drivers',
     {
@@ -105,25 +114,31 @@ async function findNearbyDrivers(pickupCoordinates: {
   const rides: NearbyRide[] = [];
 
   for (const driver of drivers) {
-    const driverCoordinates = nearbyDrivers.find(
-      (d) => d.member === driver.uid
-    )?.coordinates;
+    if (
+      driver.vehicle?.capacity && driver.vehicle.capacity >= passengers &&
+      driver.vehicle.vehicleType && preferredVehicle.includes(driver.vehicle.vehicleType) || preferredVehicle.length == 0
+    )
+    {
+      const driverCoordinates = nearbyDrivers.find(
+        (d) => d.member === driver.uid
+      )?.coordinates;
 
-    if (!driverCoordinates) {
-      continue;
+      if (!driverCoordinates) {
+        continue;
+      }
+
+      const duration = await getDrivingDurationMinutes(pickupCoordinates, {
+        lat: Number(driverCoordinates.latitude),
+        lng: Number(driverCoordinates.longitude),
+      });
+
+      rides.push({
+        id: driver.uid,
+        car: `${driver.vehicle?.year} ${driver.vehicle?.make} ${driver.vehicle?.model}`,
+        type: driver.vehicle?.vehicleType,
+        waitTimeMinutes: Math.round(duration || 0),
+      });
     }
-
-    const duration = await getDrivingDurationMinutes(pickupCoordinates, {
-      lat: Number(driverCoordinates.latitude),
-      lng: Number(driverCoordinates.longitude),
-    });
-
-    rides.push({
-      id: driver.uid,
-      car: `${driver.vehicle?.year} ${driver.vehicle?.make} ${driver.vehicle?.model}`,
-      type: driver.vehicle?.vehicleType,
-      waitTimeMinutes: Math.round(duration || 0),
-    });
   }
 
   return rides;

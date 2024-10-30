@@ -4,7 +4,7 @@ import * as socketio from 'socket.io';
 
 export type ClientToServerEvents = {
   offerRide: (currentLocation: { lat: number; lng: number }) => void;
-  findRide: (rideId: string) => void;
+  findRide: (rideId: string, preferredVehicle: ('Electric' | 'Hybrid' | 'Gas')[], passengers: number) => void;
 };
 
 export type ServerToClientEvents = {

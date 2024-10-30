@@ -37,6 +37,7 @@ rideRouter.post('/api/ride', async (req, resp) => {
       dropoffAddress: createReq.dropoffAddress,
       state: 'Searching',
       passengers: createReq.passengers,
+      preferredVehicle: user.preferredVehicle,
       createdBy: user.id,
     }).save();
 
@@ -45,6 +46,8 @@ rideRouter.post('/api/ride', async (req, resp) => {
       pickupAddress: ride.pickupAddress,
       dropoffAddress: ride.dropoffAddress,
       state: ride.state,
+      passengers: ride.passengers,
+      preferredVehicle: ride.preferredVehicle,
     };
 
     resp.send(response);
@@ -77,6 +80,8 @@ rideRouter.post('/api/ride/:id/cancel', async (req, resp) => {
       pickupAddress: ride.pickupAddress,
       dropoffAddress: ride.dropoffAddress,
       state: ride.state,
+      passengers: ride.passengers,
+      preferredVehicle: ride.preferredVehicle,
     };
 
     resp.send(response);
