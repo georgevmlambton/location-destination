@@ -115,8 +115,8 @@ async function findNearbyDrivers(
 
   for (const driver of drivers) {
     if (
-      driver.vehicle?.capacity && driver.vehicle.capacity >= passengers &&
-      driver.vehicle.vehicleType && preferredVehicle.includes(driver.vehicle.vehicleType) || preferredVehicle.length == 0
+      (driver.vehicle?.capacity && driver.vehicle.capacity >= passengers) &&
+      (driver.vehicle.vehicleType && preferredVehicle.includes(driver.vehicle.vehicleType) || preferredVehicle.length == 0)
     )
     {
       const driverCoordinates = nearbyDrivers.find(
