@@ -53,8 +53,7 @@ export function RideList() {
 
   useEffect(() => {
     if (socket) {
-      socket.emit('findRide', ride.id, ride.preferredVehicle, ride.passengers);
-
+      socket.emit('findRide', ride.id);
       socket.on('nearbyRides', setRides);
     }
 

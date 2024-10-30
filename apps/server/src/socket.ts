@@ -44,7 +44,7 @@ const onOfferRide =
     redis.publish('driverLocationUpdate', '');
   };
 
-const onFindRide = (socket: Socket) => async (rideId: string, preferredVehicle: VehicleType[], passengers: number) => {
+const onFindRide = (socket: Socket) => async (rideId: string) => {
   const user = await User.findOne({ uid: socket.data.user.uid });
 
   if (!user) {
@@ -67,12 +67,12 @@ const onFindRide = (socket: Socket) => async (rideId: string, preferredVehicle: 
 
   const pickupCoordinates = await geocodeAddress(ride.pickupAddress);
 
-  if (!pickupCoordinates) {
+  if (!pickupCoordinates || !ride.preferredVehicle || !ride.passengers) {
     return;
   }
 
   const find = async () => {
-    const nearbyRides = await findNearbyDrivers(pickupCoordinates, preferredVehicle, passengers);
+    const nearbyRides = await findNearbyDrivers(pickupCoordinates, ride.passengers, ride.preferredVehicle);
 
     socket.emit('nearbyRides', nearbyRides);
   };
@@ -88,8 +88,8 @@ const onFindRide = (socket: Socket) => async (rideId: string, preferredVehicle: 
 
 async function findNearbyDrivers(
   pickupCoordinates: { lat: number; lng: number },
-  preferredVehicle: VehicleType[],
-  passengers: number
+  passengers: number,
+  preferredVehicle?: ('Electric' | 'Hybrid' | 'Gas')[],
 ) {
   const nearbyDrivers = await redis.geoRadiusWith(
     'drivers',
@@ -115,8 +115,8 @@ async function findNearbyDrivers(
 
   for (const driver of drivers) {
     if (
-      (driver.vehicle?.capacity && driver.vehicle.capacity >= passengers) &&
-      (driver.vehicle.vehicleType && preferredVehicle.includes(driver.vehicle.vehicleType) || preferredVehicle.length == 0)
+      (driver.vehicle?.capacity && driver.vehicle.capacity >= passengers) && 
+      preferredVehicle && (driver.vehicle.vehicleType && preferredVehicle.includes(driver.vehicle.vehicleType) || preferredVehicle.length == 0)
     )
     {
       const driverCoordinates = nearbyDrivers.find(
