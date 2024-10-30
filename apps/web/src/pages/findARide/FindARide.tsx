@@ -149,6 +149,7 @@ export function FindARide() {
                         borderRadius: '50%',
                         width: '32px',
                         height: '32px',
+                        zIndex: 10,
                       }}
                       onClick={() =>
                         setFieldValue(
@@ -174,6 +175,7 @@ export function FindARide() {
                         borderRadius: '50%',
                         width: '32px',
                         height: '32px',
+                        zIndex: 10,
                       }}
                       onClick={() =>
                         setFieldValue('passengers', values.passengers + 1)
