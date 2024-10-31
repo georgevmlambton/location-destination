@@ -45,6 +45,8 @@ function getVehicleIcon(ride: NearbyRide) {
 export function RideList() {
   const [rides, setRides] = useState<NearbyRide[]>([]);
   const [showModal, setShowModal] = useState(false);
+  const [selectedRide, setSelectedRide] = useState<NearbyRide | null>(null);
+  const [sent, setSent] = useState<string[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
   const ride: RideResponse = location.state.ride;
@@ -74,6 +76,12 @@ export function RideList() {
 
   const handleCloseModal = () => {
     setShowModal(false);
+  };
+
+  const sendRequest = (ride: NearbyRide) => {
+    socket?.emit('requestRide', ride.id);
+    setSelectedRide(null);
+    setSent([...sent, ride.id]);
   };
 
   return (
@@ -164,6 +172,11 @@ export function RideList() {
           <div className="d-flex flex-column align-items-center">
             {rides.map((ride) => (
               <div
+                onClick={
+                  sent.includes(ride.id)
+                    ? undefined
+                    : () => setSelectedRide(ride)
+                }
                 key={ride.id}
                 className="position-relative mb-4"
                 style={{
@@ -179,6 +192,11 @@ export function RideList() {
                   flexDirection: 'column',
                 }}
               >
+                {sent.includes(ride.id) && (
+                  <p className="text-white text-end me-3">
+                    <em>Request Sent</em>
+                  </p>
+                )}
                 <div
                   style={{
                     position: 'absolute',
@@ -261,6 +279,36 @@ export function RideList() {
               onClick={handleYesCancel}
             >
               Yes, Cancel
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      )}
+
+      {selectedRide && (
+        <Modal
+          show
+          onHide={handleCloseModal}
+          keyboard={false}
+          style={{ marginTop: '62px' }}
+        >
+          <Modal.Header closeButton className="border-0">
+            <Modal.Title>Send Request</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>Send a request to this ride?</Modal.Body>
+          <Modal.Footer className="border-0">
+            <Button
+              className="rounded-pill"
+              variant="outline-dark"
+              onClick={() => setSelectedRide(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="rounded-pill"
+              variant="success"
+              onClick={() => sendRequest(selectedRide)}
+            >
+              Yes
             </Button>
           </Modal.Footer>
         </Modal>
