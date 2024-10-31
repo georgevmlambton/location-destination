@@ -2,9 +2,8 @@ import { Socket } from 'socket.io';
 import { User } from '../db/user';
 import mongoose from 'mongoose';
 import { geocodeAddress, getDrivingDurationMinutes } from '../maps';
-import { Ride } from '../db/ride';
+import { IRide, Ride } from '../db/ride';
 import { redis, redisEvents } from '../redis';
-import { VehicleType } from '@location-destination/types/src/requests/profile';
 import { GeoReplyWith } from 'redis';
 import { NearbyRide } from '@location-destination/types/src/ride';
 
@@ -36,11 +35,7 @@ export const onFindRide = (socket: Socket) => async (rideId: string) => {
   }
 
   const find = async () => {
-    const nearbyRides = await findNearbyDrivers(
-      pickupCoordinates,
-      ride.passengers,
-      ride.preferredVehicle
-    );
+    const nearbyRides = await findNearbyDrivers(pickupCoordinates, ride);
 
     socket.emit('nearbyRides', nearbyRides);
   };
@@ -60,8 +55,9 @@ export const onFindRide = (socket: Socket) => async (rideId: string) => {
 
 async function findNearbyDrivers(
   pickupCoordinates: { lat: number; lng: number },
-  passengers: number,
-  preferredVehicle?: VehicleType[]
+  ride: IRide & {
+    _id: mongoose.Types.ObjectId;
+  }
 ) {
   const nearbyDrivers = await redis.geoRadiusWith(
     'drivers',
@@ -88,17 +84,21 @@ async function findNearbyDrivers(
   for (const driver of drivers) {
     if (
       driver.vehicle?.capacity &&
-      driver.vehicle.capacity >= passengers &&
-      preferredVehicle &&
+      driver.vehicle.capacity >= ride.passengers &&
+      ride.preferredVehicle &&
       ((driver.vehicle.vehicleType &&
-        preferredVehicle.includes(driver.vehicle.vehicleType)) ||
-        preferredVehicle.length == 0)
+        ride.preferredVehicle.includes(driver.vehicle.vehicleType)) ||
+        ride.preferredVehicle.length == 0)
     ) {
       const driverCoordinates = nearbyDrivers.find(
         (d) => d.member === driver.uid
       )?.coordinates;
 
       if (!driverCoordinates) {
+        continue;
+      }
+
+      if (await redis.sIsMember(`rejectedRides:${ride._id}`, driver.uid)) {
         continue;
       }
 

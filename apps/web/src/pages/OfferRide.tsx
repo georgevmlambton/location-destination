@@ -1,23 +1,40 @@
 import arrowLeft from '../assets/arrow-left.svg';
 import { NavButton } from '../components/nav/NavButton';
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import mapboxgl from 'mapbox-gl';
 import { usePosition } from '../hook/usePosition';
 import { useSocket } from '../hook/useSocket';
+import { RideResponse } from '@location-destination/types/src/requests/ride';
 
 export function OfferRide() {
   const navigate = useNavigate();
   const position = usePosition();
   const socket = useSocket();
 
+  const [rideRequest, setRideRequest] = useState<{
+    ride: RideResponse;
+    distanceMin: number;
+  } | null>(null);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const mapMarker = useRef<mapboxgl.Marker>(new mapboxgl.Marker());
   const startedRef = useRef(false);
 
   const [showEndDialog, setShowEndDialog] = useState(false);
+
+  const onRequestRide = useCallback(
+    (ride: RideResponse, distanceMin: number) => {
+      setRideRequest({ ride, distanceMin });
+    },
+    []
+  );
+
+  const rejectRide = (ride: RideResponse) => {
+    socket?.emit('rejectRide', ride.id);
+    setRideRequest(null);
+  };
 
   useEffect(() => {
     if (mapContainerRef.current && !mapRef.current) {
@@ -30,10 +47,10 @@ export function OfferRide() {
   useEffect(() => {
     if (socket && position) {
       if (!startedRef.current) {
-      socket.emit('offerRide', {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude,
-      });
+        socket.emit('offerRide', {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
         startedRef.current = true;
       } else {
         socket.emit('driverLocation', {
@@ -41,6 +58,8 @@ export function OfferRide() {
           lng: position.coords.longitude,
         });
       }
+
+      socket.on('requestRide', onRequestRide);
     }
 
     if (mapRef.current && position) {
@@ -57,7 +76,11 @@ export function OfferRide() {
         })
         .addTo(mapRef.current);
     }
-  }, [position, socket]);
+
+    return () => {
+      socket?.off('requestRide', onRequestRide);
+    };
+  }, [onRequestRide, position, socket]);
 
   return (
     <div className="d-flex flex-column align-items-center position-relative h-100">
@@ -117,6 +140,37 @@ export function OfferRide() {
               }}
             >
               Stop
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      )}
+      {rideRequest && (
+        <Modal
+          show
+          onHide={() => setRideRequest(null)}
+          keyboard={false}
+          style={{ marginTop: '62px' }}
+        >
+          <Modal.Header closeButton className="border-0">
+            <Modal.Title>
+              {Math.round(rideRequest.distanceMin)}min away
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <p className="fs-4">
+              <b>Pickup:</b> {rideRequest.ride.pickupAddress}
+            </p>
+          </Modal.Body>
+          <Modal.Footer className="border-0">
+            <Button
+              className="rounded-pill"
+              variant="outline-dark"
+              onClick={() => rejectRide(rideRequest.ride)}
+            >
+              Cancel
+            </Button>
+            <Button className="rounded-pill" variant="success">
+              Confirm
             </Button>
           </Modal.Footer>
         </Modal>
