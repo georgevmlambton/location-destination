@@ -41,7 +41,60 @@ const onOfferRide =
       member: socket.data.user.uid,
     });
 
+    socket.on('driverLocation', async (location) => {
+      await redis.GEOADD('drivers', {
+        longitude: location.lng,
+        latitude: location.lat,
+        member: socket.data.user.uid,
+      });
+
+      redis.publish('driverLocationUpdate', '');
+    });
+
+    redisEvents.subscribe(
+      `requestRide:${socket.data.user.uid}`,
+      async (rideId: string) => {
+        const ride = await Ride.findById(rideId);
+
+        if (!ride || !ride?.pickupAddress) {
+          console.error('Invalid Ride');
+          return;
+        }
+
+        const pickupCoordinates = await geocodeAddress(ride.pickupAddress);
+        const driverCoordinates = (
+          await redis.geoPos('drivers', socket.data.user.uid)
+        )?.[0];
+
+        if (!driverCoordinates || !pickupCoordinates) {
+          console.error('Location missing');
+          return;
+        }
+
+        const duration = await getDrivingDurationMinutes(pickupCoordinates, {
+          lat: Number(driverCoordinates.latitude),
+          lng: Number(driverCoordinates.longitude),
+        });
+
+        socket.emit(
+          'requestRide',
+          {
+            id: ride.id,
+            dropoffAddress: ride.dropoffAddress,
+            pickupAddress: ride.pickupAddress,
+            passengers: ride.passengers,
+            state: ride.state,
+          },
+          duration || 0
+        );
+      }
+    );
+
     redis.publish('driverLocationUpdate', '');
+
+    socket.on('disconnect', () => {
+      redisEvents.unsubscribe(`requestRide:${socket.data.user.uid}`);
+    });
   };
 
 const onFindRide = (socket: Socket) => async (rideId: string) => {
@@ -72,7 +125,11 @@ const onFindRide = (socket: Socket) => async (rideId: string) => {
   }
 
   const find = async () => {
-    const nearbyRides = await findNearbyDrivers(pickupCoordinates, ride.passengers, ride.preferredVehicle);
+    const nearbyRides = await findNearbyDrivers(
+      pickupCoordinates,
+      ride.passengers,
+      ride.preferredVehicle
+    );
 
     socket.emit('nearbyRides', nearbyRides);
   };
@@ -80,6 +137,10 @@ const onFindRide = (socket: Socket) => async (rideId: string) => {
   find();
 
   redisEvents.subscribe('driverLocationUpdate', find);
+
+  socket.on('requestRide', (driverId) => {
+    redis.publish(`requestRide:${driverId}`, ride.id);
+  });
 
   socket.on('disconnect', () => {
     redisEvents.unsubscribe('driverLocationUpdate', find);
@@ -89,7 +150,7 @@ const onFindRide = (socket: Socket) => async (rideId: string) => {
 async function findNearbyDrivers(
   pickupCoordinates: { lat: number; lng: number },
   passengers: number,
-  preferredVehicle?: ('Electric' | 'Hybrid' | 'Gas')[],
+  preferredVehicle?: VehicleType[]
 ) {
   const nearbyDrivers = await redis.geoRadiusWith(
     'drivers',
@@ -115,10 +176,13 @@ async function findNearbyDrivers(
 
   for (const driver of drivers) {
     if (
-      (driver.vehicle?.capacity && driver.vehicle.capacity >= passengers) && 
-      preferredVehicle && (driver.vehicle.vehicleType && preferredVehicle.includes(driver.vehicle.vehicleType) || preferredVehicle.length == 0)
-    )
-    {
+      driver.vehicle?.capacity &&
+      driver.vehicle.capacity >= passengers &&
+      preferredVehicle &&
+      ((driver.vehicle.vehicleType &&
+        preferredVehicle.includes(driver.vehicle.vehicleType)) ||
+        preferredVehicle.length == 0)
+    ) {
       const driverCoordinates = nearbyDrivers.find(
         (d) => d.member === driver.uid
       )?.coordinates;

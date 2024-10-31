@@ -172,6 +172,7 @@ export function RideList() {
           <div className="d-flex flex-column align-items-center">
             {rides.map((ride) => (
               <div
+                role={sent.includes(ride.id) ? '' : 'button'}
                 onClick={
                   sent.includes(ride.id)
                     ? undefined

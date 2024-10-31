@@ -1,5 +1,4 @@
 import arrowLeft from '../assets/arrow-left.svg';
-import background from '../assets/background.png';
 import { NavButton } from '../components/nav/NavButton';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
@@ -16,6 +15,7 @@ export function OfferRide() {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const mapMarker = useRef<mapboxgl.Marker>(new mapboxgl.Marker());
+  const startedRef = useRef(false);
 
   const [showEndDialog, setShowEndDialog] = useState(false);
 
@@ -29,10 +29,18 @@ export function OfferRide() {
 
   useEffect(() => {
     if (socket && position) {
+      if (!startedRef.current) {
       socket.emit('offerRide', {
         lat: position.coords.latitude,
         lng: position.coords.longitude,
       });
+        startedRef.current = true;
+      } else {
+        socket.emit('driverLocation', {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+      }
     }
 
     if (mapRef.current && position) {
@@ -52,26 +60,7 @@ export function OfferRide() {
   }, [position, socket]);
 
   return (
-    <div
-      className="d-flex flex-column align-items-center position-relative"
-      style={{
-        height: '100vh',
-        background:
-          'linear-gradient(180deg, rgba(189,229,199,1) 0%, rgba(248,248,248,1) 30%, rgba(255,255,255,1) 100%)',
-      }}
-    >
-      <img
-        className="position-absolute"
-        src={background}
-        style={{
-          height: 'auto',
-          bottom: '-38%',
-          left: '-49%',
-          opacity: '24%',
-          width: '160%',
-        }}
-      />
-
+    <div className="d-flex flex-column align-items-center position-relative h-100">
       <div className="p-4 pb-5 position-relative w-100">
         <NavButton icon={arrowLeft} onClick={() => setShowEndDialog(true)} />
       </div>
