@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import lightning from '../../assets/lightning-charge-fill.svg';
 import fuel from '../../assets/fuel-pump-fill.svg';
 import rideList1 from '../../assets/ride-list-1.svg';
@@ -53,16 +53,22 @@ export function RideList() {
 
   const socket = useSocket();
 
+  const confirmRide = useCallback((ride: RideResponse) => {
+    console.log(ride);
+  }, []);
+
   useEffect(() => {
     if (socket) {
       socket.emit('findRide', ride.id);
       socket.on('nearbyRides', setRides);
+      socket.on('confirmRide', confirmRide);
     }
 
     return () => {
       socket?.off('nearbyRides', setRides);
+      socket?.off('confirmRide', confirmRide);
     };
-  }, [socket, ride]);
+  }, [confirmRide, socket, ride]);
 
   const handleCancelClick = () => {
     setShowModal(true);

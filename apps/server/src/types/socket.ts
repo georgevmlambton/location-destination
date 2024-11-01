@@ -13,12 +13,14 @@ export type ClientToServerEvents = {
   ) => void;
   requestRide: (driverId: string) => void;
   rejectRide: (rideId: string) => void;
+  confirmRide: (rideId: string) => void;
 };
 
 export type ServerToClientEvents = {
   invalidAddress: (error: string) => void;
   nearbyRides: (nearbyRides: NearbyRide[]) => void;
   requestRide: (ride: RideResponse, distanceMin: number) => void;
+  confirmRide: (ride: RideResponse) => void;
 };
 
 export type SocketData = {

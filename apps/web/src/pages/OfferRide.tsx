@@ -17,9 +17,14 @@ export function OfferRide() {
     ride: RideResponse;
     distanceMin: number;
   } | null>(null);
+  const [pickup, setPickup] = useState<{
+    ride: RideResponse;
+    location: { lat: number; lng: number };
+  } | null>(null);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const mapMarker = useRef<mapboxgl.Marker>(new mapboxgl.Marker());
+  const pickupMarker = useRef<mapboxgl.Marker>(new mapboxgl.Marker());
   const startedRef = useRef(false);
 
   const [showEndDialog, setShowEndDialog] = useState(false);
@@ -34,6 +39,23 @@ export function OfferRide() {
   const rejectRide = (ride: RideResponse) => {
     socket?.emit('rejectRide', ride.id);
     setRideRequest(null);
+  };
+
+  const confirmRide = async (ride: RideResponse) => {
+    const geocodeUrl = `https://api.mapbox.com/search/geocode/v6/forward?q=${encodeURIComponent(ride.pickupAddress)}&access_token=${import.meta.env.VITE_MAPBOX_TOKEN}`;
+    const response = await fetch(geocodeUrl);
+    const body = await response.json();
+
+    setRideRequest(null);
+    setPickup({
+      location: {
+        lat: body.features[0].geometry.coordinates[1],
+        lng: body.features[0].geometry.coordinates[0],
+      },
+      ride,
+    });
+
+    socket?.emit('confirmRide', ride.id);
   };
 
   useEffect(() => {
@@ -67,20 +89,27 @@ export function OfferRide() {
         coords: { latitude: lat, longitude: lng },
       } = position;
 
-      mapRef.current.setCenter({ lat, lng }).setZoom(15);
-
       mapMarker.current
         .setLngLat({
           lng: position.coords.longitude,
           lat: position.coords.latitude,
         })
         .addTo(mapRef.current);
+
+      if (pickup) {
+        pickupMarker.current.setLngLat(pickup.location).addTo(mapRef.current);
+        mapRef.current.fitBounds([{ lat, lng }, pickup.location], {
+          padding: 50,
+        });
+      } else {
+        mapRef.current.setCenter({ lat, lng }).setZoom(15);
+      }
     }
 
     return () => {
       socket?.off('requestRide', onRequestRide);
     };
-  }, [onRequestRide, position, socket]);
+  }, [onRequestRide, position, socket, pickup]);
 
   return (
     <div className="d-flex flex-column align-items-center position-relative h-100">
@@ -95,7 +124,16 @@ export function OfferRide() {
           justifyContent: 'space-between',
         }}
       >
-        <h3 className="text-dark-emphasis text-center">Waiting for requests</h3>
+        {!pickup && (
+          <h3 className="text-dark-emphasis text-center">
+            Waiting for requests
+          </h3>
+        )}
+        {pickup && (
+          <h3 className="text-dark-emphasis text-center">
+            Pickuing up {pickup.ride.createdBy.name}
+          </h3>
+        )}
 
         <div ref={mapContainerRef} style={{ height: '400px' }}></div>
 
@@ -160,6 +198,9 @@ export function OfferRide() {
             <p className="fs-4">
               <b>Pickup:</b> {rideRequest.ride.pickupAddress}
             </p>
+            <p className="fs-4">
+              <b>Dropoff:</b> {rideRequest.ride.dropoffAddress}
+            </p>
           </Modal.Body>
           <Modal.Footer className="border-0">
             <Button
@@ -169,7 +210,11 @@ export function OfferRide() {
             >
               Cancel
             </Button>
-            <Button className="rounded-pill" variant="success">
+            <Button
+              className="rounded-pill"
+              variant="success"
+              onClick={() => confirmRide(rideRequest.ride)}
+            >
               Confirm
             </Button>
           </Modal.Footer>

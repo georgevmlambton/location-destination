@@ -1,4 +1,3 @@
-import { Socket } from 'socket.io';
 import { User } from '../db/user';
 import mongoose from 'mongoose';
 import { geocodeAddress, getDrivingDurationMinutes } from '../maps';
@@ -6,6 +5,7 @@ import { IRide, Ride } from '../db/ride';
 import { redis, redisEvents } from '../redis';
 import { GeoReplyWith } from 'redis';
 import { NearbyRide } from '@location-destination/types/src/ride';
+import { Socket } from '../types/socket';
 
 export const onFindRide = (socket: Socket) => async (rideId: string) => {
   const user = await User.findOne({ uid: socket.data.user.uid });
@@ -40,9 +40,31 @@ export const onFindRide = (socket: Socket) => async (rideId: string) => {
     socket.emit('nearbyRides', nearbyRides);
   };
 
+  const confirm = async (driverId: string) => {
+    const driver = await User.findOne({ uid: driverId });
+    if (!driver) {
+      return;
+    }
+    ride.driver = driver.id;
+    ride.state = 'PickingUp';
+    await ride.save();
+    socket.emit('confirmRide', {
+      id: ride.id,
+      createdBy: { name: user.name || '' },
+      driver: { name: driver?.name || '' },
+      dropoffAddress: ride.dropoffAddress,
+      pickupAddress: ride.pickupAddress,
+      passengers: ride.passengers,
+      preferredVehicle: ride.preferredVehicle,
+      state: ride.state,
+    });
+  };
+
   find();
 
   redisEvents.subscribe('driverLocationUpdate', find);
+
+  redisEvents.subscribe(`confirmRide:${ride.id}`, confirm);
 
   socket.on('requestRide', (driverId) => {
     redis.publish(`requestRide:${driverId}`, ride.id);
@@ -50,6 +72,7 @@ export const onFindRide = (socket: Socket) => async (rideId: string) => {
 
   socket.on('disconnect', () => {
     redisEvents.unsubscribe('driverLocationUpdate', find);
+    redisEvents.unsubscribe(`confirmRide:${ride.id}`, confirm);
   });
 };
 
