@@ -12,6 +12,11 @@ export const onOfferRide =
       (rideId: string) => onRequestRide(socket, rideId)
     );
 
+    socket.on('rejectRide', async (rideId) => {
+      await redis.sAdd(`rejectedRides:${rideId}`, socket.data.user.uid);
+      redis.publish('driverLocationUpdate', '');
+    });
+
     socket.on('disconnect', async () => {
       redisEvents.unsubscribe(`requestRide:${socket.data.user.uid}`);
       await redis.ZREM('drivers', socket.data.user.uid);

@@ -12,6 +12,7 @@ export type ClientToServerEvents = {
     passengers: number
   ) => void;
   requestRide: (driverId: string) => void;
+  rejectRide: (rideId: string) => void;
 };
 
 export type ServerToClientEvents = {
