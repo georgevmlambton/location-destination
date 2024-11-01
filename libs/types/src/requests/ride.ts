@@ -40,10 +40,16 @@ export class RideCreateRequest {
   }
 }
 
-export type RideState = 'Searching' | 'Cancelled';
+export type RideState = 'Searching' | 'Cancelled' | 'PickingUp';
 
 export type RideResponse = {
   id: string;
+  createdBy: {
+    name: string;
+  };
+  driver?: {
+    name: string;
+  };
   pickupAddress: string;
   dropoffAddress: string;
   state: RideState;

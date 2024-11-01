@@ -6,7 +6,7 @@ import {
 import { Ride } from '../db/ride';
 import { geocodeAddress } from '../maps';
 import { ValidationError } from 'yup';
-import { User } from '../db/user';
+import { IUser, User } from '../db/user';
 
 export const rideRouter = Router();
 
@@ -43,6 +43,7 @@ rideRouter.post('/api/ride', async (req, resp) => {
 
     const response: RideResponse = {
       id: ride.id,
+      createdBy: { name: user.name || '' },
       pickupAddress: ride.pickupAddress,
       dropoffAddress: ride.dropoffAddress,
       state: ride.state,
@@ -66,7 +67,9 @@ rideRouter.post('/api/ride', async (req, resp) => {
 
 rideRouter.post('/api/ride/:id/cancel', async (req, resp) => {
   try {
-    const ride = await Ride.findById(req.params.id);
+    const ride = await Ride.findById(req.params.id).populate<{
+      createdBy: IUser;
+    }>('createdBy');
 
     if (!ride) {
       return resp.status(404).send({ message: 'Ride not found' });
@@ -77,6 +80,7 @@ rideRouter.post('/api/ride/:id/cancel', async (req, resp) => {
 
     const response: RideResponse = {
       id: ride.id,
+      createdBy: { name: ride.createdBy.name || '' },
       pickupAddress: ride.pickupAddress,
       dropoffAddress: ride.dropoffAddress,
       state: ride.state,

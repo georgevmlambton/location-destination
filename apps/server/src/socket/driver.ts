@@ -1,4 +1,5 @@
 import { Ride } from '../db/ride';
+import { IUser } from '../db/user';
 import { geocodeAddress, getDrivingDurationMinutes } from '../maps';
 import { redis, redisEvents } from '../redis';
 import { Socket } from '../types/socket';
@@ -15,6 +16,10 @@ export const onOfferRide =
     socket.on('rejectRide', async (rideId) => {
       await redis.sAdd(`rejectedRides:${rideId}`, socket.data.user.uid);
       redis.publish('driverLocationUpdate', '');
+    });
+
+    socket.on('confirmRide', (rideId) => {
+      redis.publish(`confirmRide:${rideId}`, socket.data.user.uid);
     });
 
     socket.on('disconnect', async () => {
@@ -40,7 +45,9 @@ async function updateLocation(
 }
 
 async function onRequestRide(socket: Socket, rideId: string) {
-  const ride = await Ride.findById(rideId);
+  const ride = await Ride.findById(rideId).populate<{ createdBy: IUser }>(
+    'createdBy'
+  );
 
   if (!ride || !ride?.pickupAddress) {
     console.error('Invalid Ride');
@@ -67,6 +74,7 @@ async function onRequestRide(socket: Socket, rideId: string) {
     'requestRide',
     {
       id: ride.id,
+      createdBy: { name: ride.createdBy.name || '' },
       dropoffAddress: ride.dropoffAddress,
       pickupAddress: ride.pickupAddress,
       passengers: ride.passengers,

@@ -6,8 +6,9 @@ export interface IRide {
   dropoffAddress: string;
   passengers: number;
   preferredVehicle?: ('Electric' | 'Hybrid' | 'Gas')[];
-  state: 'Searching' | 'Cancelled';
+  state: 'Searching' | 'Cancelled' | 'PickingUp';
   createdBy: ObjectId;
+  driver?: ObjectId;
 }
 
 const rideSchema = new Schema<IRide>({
@@ -17,6 +18,7 @@ const rideSchema = new Schema<IRide>({
   passengers: { type: Number, required: true },
   preferredVehicle: { type: Array, required: false },
   createdBy: { type: Types.ObjectId, required: true, ref: 'User' },
+  driver: { type: Types.ObjectId, required: false, ref: 'User' },
 });
 
 export const Ride = model<IRide>('Ride', rideSchema);
