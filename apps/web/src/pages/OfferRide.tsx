@@ -4,6 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import mapboxgl from 'mapbox-gl';
+// @ts-ignore
+import MapboxDirections from '@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions';
+import '@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions.css';
 import { usePosition } from '../hook/usePosition';
 import { useSocket } from '../hook/useSocket';
 import { RideResponse } from '@location-destination/types/src/requests/ride';
@@ -25,6 +28,7 @@ export function OfferRide() {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const mapMarker = useRef<mapboxgl.Marker>(new mapboxgl.Marker());
   const pickupMarker = useRef<mapboxgl.Marker>(new mapboxgl.Marker());
+  const directions = useRef<MapboxDirections | null>(null);
   const startedRef = useRef(false);
 
   const [showEndDialog, setShowEndDialog] = useState(false);
@@ -45,26 +49,61 @@ export function OfferRide() {
     const geocodeUrl = `https://api.mapbox.com/search/geocode/v6/forward?q=${encodeURIComponent(ride.pickupAddress)}&access_token=${import.meta.env.VITE_MAPBOX_TOKEN}`;
     const response = await fetch(geocodeUrl);
     const body = await response.json();
+    const pickupLocation = {
+      lat: body.features[0].geometry.coordinates[1],
+      lng: body.features[0].geometry.coordinates[0],
+    };
+
+    const dropoffGeocodeUrl = `https://api.mapbox.com/search/geocode/v6/forward?q=${encodeURIComponent(ride.dropoffAddress)}&access_token=${import.meta.env.VITE_MAPBOX_TOKEN}`;
+    const dropoffResponse = await fetch(dropoffGeocodeUrl);
+    const dropoffBody = await dropoffResponse.json();
+
+    const dropoffLocation = {
+      lat: dropoffBody.features[0].geometry.coordinates[1],
+      lng: dropoffBody.features[0].geometry.coordinates[0],
+    };
 
     setRideRequest(null);
     setPickup({
-      location: {
-        lat: body.features[0].geometry.coordinates[1],
-        lng: body.features[0].geometry.coordinates[0],
-      },
+      location: pickupLocation,
       ride,
     });
+
+    if (mapRef.current && directions.current) {
+      directions.current.setOrigin([pickupLocation.lng, pickupLocation.lat]);
+      directions.current.setDestination([dropoffLocation.lng, dropoffLocation.lat]);
+    }
 
     socket?.emit('confirmRide', ride.id);
   };
 
   useEffect(() => {
-    if (mapContainerRef.current && !mapRef.current) {
+    if (mapContainerRef.current && !mapRef.current && position) {
       mapRef.current = new mapboxgl.Map({
         container: mapContainerRef.current,
+        style: 'mapbox://styles/mapbox/streets-v11',
+        center: [position.coords.longitude, position.coords.latitude],
+        zoom: 13,
+        accessToken: import.meta.env.VITE_MAPBOX_TOKEN,
       });
+
+      directions.current = new MapboxDirections({
+        accessToken: import.meta.env.VITE_MAPBOX_TOKEN,
+        unit: 'metric',
+        profile: 'mapbox/driving',
+        controls: {
+          inputs: false,
+          instructions: false,
+          profileSwitcher: false,
+        },
+        placeholder: {
+          origin: 'Start Location',
+          destination: 'End Location',
+        },
+      });
+      mapRef.current.addControl(directions.current, 'top-left');
     }
-  }, []);
+  }, [position]);
 
   useEffect(() => {
     if (socket && position) {
@@ -131,7 +170,7 @@ export function OfferRide() {
         )}
         {pickup && (
           <h3 className="text-dark-emphasis text-center">
-            Pickuing up {pickup.ride.createdBy.name}
+            Picking up {pickup.ride.createdBy.name}
           </h3>
         )}
 
