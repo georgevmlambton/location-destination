@@ -11,9 +11,11 @@ export type ClientToServerEvents = {
     preferredVehicle: ('Electric' | 'Hybrid' | 'Gas')[],
     passengers: number
   ) => void;
+  ride: (rideId: string) => void;
   requestRide: (driverId: string) => void;
   rejectRide: (rideId: string) => void;
   confirmRide: (rideId: string) => void;
+  cancelRide: (rideId: string) => void;
 };
 
 export type ServerToClientEvents = {
@@ -21,6 +23,8 @@ export type ServerToClientEvents = {
   nearbyRides: (nearbyRides: NearbyRide[]) => void;
   requestRide: (ride: RideResponse, distanceMin: number) => void;
   confirmRide: (ride: RideResponse) => void;
+  driverLocation: (location: { lat: number; lng: number }) => void;
+  endRide: () => void;
 };
 
 export type SocketData = {

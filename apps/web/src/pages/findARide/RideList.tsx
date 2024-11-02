@@ -53,9 +53,12 @@ export function RideList() {
 
   const socket = useSocket();
 
-  const confirmRide = useCallback((ride: RideResponse) => {
-    console.log(ride);
-  }, []);
+  const confirmRide = useCallback(
+    (ride: RideResponse) => {
+      navigate('/ride', { state: { ride } });
+    },
+    [navigate]
+  );
 
   useEffect(() => {
     if (socket) {
@@ -91,7 +94,7 @@ export function RideList() {
   };
 
   return (
-    <div className="d-flex flex-column align-items-center position-relative h-100">
+    <div className="d-flex flex-column align-items-stretch px-4 position-relative h-100">
       <div className="p-4 pb-5 position-relative w-100">
         <NavButton icon={arrowLeft} onClick={handleCancelClick} />
       </div>

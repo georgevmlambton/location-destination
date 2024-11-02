@@ -6,6 +6,10 @@ import { Socket } from '../types/socket';
 
 export const onOfferRide =
   (socket: Socket) => async (location: { lat: number; lng: number }) => {
+    const sendEndRide = () => {
+      socket.emit('endRide');
+    };
+
     socket.on('driverLocation', (location) => updateLocation(socket, location));
 
     redisEvents.subscribe(
@@ -19,7 +23,16 @@ export const onOfferRide =
     });
 
     socket.on('confirmRide', (rideId) => {
+      redisEvents.subscribe(`endRide:${rideId}`, sendEndRide);
       redis.publish(`confirmRide:${rideId}`, socket.data.user.uid);
+
+      socket.on('cancelRide', () => {
+        redis.publish(`endRide:${rideId}`, '');
+      });
+
+      socket.on('disconnect', () =>
+        redisEvents.unsubscribe(`endRide:${rideId}`, sendEndRide)
+      );
     });
 
     socket.on('disconnect', async () => {
