@@ -1,4 +1,4 @@
-import { User } from '../db/user';
+import { IUser, User } from '../db/user';
 import mongoose from 'mongoose';
 import { geocodeAddress, getDrivingDurationMinutes } from '../maps';
 import { IRide, Ride } from '../db/ride';
@@ -73,6 +73,49 @@ export const onFindRide = (socket: Socket) => async (rideId: string) => {
   socket.on('disconnect', () => {
     redisEvents.unsubscribe('driverLocationUpdate', find);
     redisEvents.unsubscribe(`confirmRide:${ride.id}`, confirm);
+  });
+};
+
+export const onRide = (socket: Socket) => async (rideId: string) => {
+  const ride = await Ride.findById(rideId).populate<{ driver: IUser }>(
+    'driver'
+  );
+  const driver = ride?.driver;
+
+  if (!driver) {
+    console.error('ride should have a driver');
+    return;
+  }
+
+  const sendDriverLocation = async () => {
+    const location = (await redis.geoPos('drivers', driver.uid))?.[0];
+    if (!location) {
+      console.error('driver location not found');
+      return;
+    }
+    socket.emit('driverLocation', {
+      lat: Number(location.latitude),
+      lng: Number(location.longitude),
+    });
+  };
+
+  const sendEndRide = () => {
+    socket.emit('endRide');
+  };
+
+  redisEvents.subscribe('driverLocationUpdate', sendDriverLocation);
+
+  redisEvents.subscribe(`endRide:${rideId}`, sendEndRide);
+
+  socket.on('cancelRide', () => {
+    redis.publish(`endRide:${rideId}`, '');
+  });
+
+  sendDriverLocation();
+
+  socket.on('disconnect', () => {
+    redisEvents.unsubscribe('driverLocationUpdate', sendDriverLocation);
+    redisEvents.unsubscribe(`endRide:${rideId}`, sendEndRide);
   });
 };
 

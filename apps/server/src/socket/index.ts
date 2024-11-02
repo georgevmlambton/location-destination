@@ -9,13 +9,14 @@ import {
   Socket,
 } from '../types/socket';
 import { onOfferRide } from './driver';
-import { onFindRide } from './rider';
+import { onFindRide, onRide } from './rider';
 
 const onConnect = async (socket: Socket) => {
   console.log(`Client ${socket.data.user.email} connected`);
 
   socket.on('offerRide', onOfferRide(socket));
   socket.on('findRide', onFindRide(socket));
+  socket.on('ride', onRide(socket));
 };
 
 export function initializeSocket(server: HttpServer) {

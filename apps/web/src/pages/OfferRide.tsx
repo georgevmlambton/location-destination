@@ -1,7 +1,7 @@
 import arrowLeft from '../assets/arrow-left.svg';
 import { NavButton } from '../components/nav/NavButton';
 import { useNavigate } from 'react-router-dom';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import mapboxgl from 'mapbox-gl';
 // @ts-ignore
@@ -10,11 +10,13 @@ import '@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions.css';
 import { usePosition } from '../hook/usePosition';
 import { useSocket } from '../hook/useSocket';
 import { RideResponse } from '@location-destination/types/src/requests/ride';
+import { ToastContext } from '../providers/toast-provider';
 
 export function OfferRide() {
   const navigate = useNavigate();
   const position = usePosition();
   const socket = useSocket();
+  const toast = useContext(ToastContext);
 
   const [rideRequest, setRideRequest] = useState<{
     ride: RideResponse;
@@ -45,6 +47,15 @@ export function OfferRide() {
     setRideRequest(null);
   };
 
+  const end = useCallback(() => {
+    if (pickup) {
+      socket?.emit('cancelRide', pickup.ride.id);
+    }
+
+    toast.show('Ride was cancelled', 'danger');
+    navigate('/');
+  }, [navigate, pickup, socket, toast]);
+
   const confirmRide = async (ride: RideResponse) => {
     const geocodeUrl = `https://api.mapbox.com/search/geocode/v6/forward?q=${encodeURIComponent(ride.pickupAddress)}&access_token=${import.meta.env.VITE_MAPBOX_TOKEN}`;
     const response = await fetch(geocodeUrl);
@@ -54,24 +65,21 @@ export function OfferRide() {
       lng: body.features[0].geometry.coordinates[0],
     };
 
-    const dropoffGeocodeUrl = `https://api.mapbox.com/search/geocode/v6/forward?q=${encodeURIComponent(ride.dropoffAddress)}&access_token=${import.meta.env.VITE_MAPBOX_TOKEN}`;
-    const dropoffResponse = await fetch(dropoffGeocodeUrl);
-    const dropoffBody = await dropoffResponse.json();
-
-    const dropoffLocation = {
-      lat: dropoffBody.features[0].geometry.coordinates[1],
-      lng: dropoffBody.features[0].geometry.coordinates[0],
-    };
-
     setRideRequest(null);
     setPickup({
       location: pickupLocation,
       ride,
     });
 
-    if (mapRef.current && directions.current) {
-      directions.current.setOrigin([pickupLocation.lng, pickupLocation.lat]);
-      directions.current.setDestination([dropoffLocation.lng, dropoffLocation.lat]);
+    if (mapRef.current && directions.current && position) {
+      directions.current.setOrigin([
+        position.coords.longitude,
+        position.coords.latitude,
+      ]);
+      directions.current.setDestination([
+        pickupLocation.lng,
+        pickupLocation.lat,
+      ]);
     }
 
     socket?.emit('confirmRide', ride.id);
@@ -121,6 +129,7 @@ export function OfferRide() {
       }
 
       socket.on('requestRide', onRequestRide);
+      socket.on('endRide', end);
     }
 
     if (mapRef.current && position) {
@@ -147,11 +156,12 @@ export function OfferRide() {
 
     return () => {
       socket?.off('requestRide', onRequestRide);
+      socket?.off('endRide', end);
     };
-  }, [onRequestRide, position, socket, pickup]);
+  }, [onRequestRide, position, socket, pickup, end]);
 
   return (
-    <div className="d-flex flex-column align-items-center position-relative h-100">
+    <div className="d-flex flex-column align-items-stretch px-4 position-relative h-100">
       <div className="p-4 pb-5 position-relative w-100">
         <NavButton icon={arrowLeft} onClick={() => setShowEndDialog(true)} />
       </div>
@@ -209,13 +219,7 @@ export function OfferRide() {
             >
               Close
             </Button>
-            <Button
-              className="rounded-pill"
-              variant="danger"
-              onClick={() => {
-                navigate('/');
-              }}
-            >
+            <Button className="rounded-pill" variant="danger" onClick={end}>
               Stop
             </Button>
           </Modal.Footer>
