@@ -65,24 +65,21 @@ export function OfferRide() {
       lng: body.features[0].geometry.coordinates[0],
     };
 
-    const dropoffGeocodeUrl = `https://api.mapbox.com/search/geocode/v6/forward?q=${encodeURIComponent(ride.dropoffAddress)}&access_token=${import.meta.env.VITE_MAPBOX_TOKEN}`;
-    const dropoffResponse = await fetch(dropoffGeocodeUrl);
-    const dropoffBody = await dropoffResponse.json();
-
-    const dropoffLocation = {
-      lat: dropoffBody.features[0].geometry.coordinates[1],
-      lng: dropoffBody.features[0].geometry.coordinates[0],
-    };
-
     setRideRequest(null);
     setPickup({
       location: pickupLocation,
       ride,
     });
 
-    if (mapRef.current && directions.current) {
-      directions.current.setOrigin([pickupLocation.lng, pickupLocation.lat]);
-      directions.current.setDestination([dropoffLocation.lng, dropoffLocation.lat]);
+    if (mapRef.current && directions.current && position) {
+      directions.current.setOrigin([
+        position.coords.longitude,
+        position.coords.latitude,
+      ]);
+      directions.current.setDestination([
+        pickupLocation.lng,
+        pickupLocation.lat,
+      ]);
     }
 
     socket?.emit('confirmRide', ride.id);
