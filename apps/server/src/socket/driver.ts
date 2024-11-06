@@ -36,7 +36,6 @@ export const onOfferRide =
     });
 
     socket.on('startRide', async (rideId) => {
-      console.log(`Ride ${rideId} has started`);
       await Ride.findByIdAndUpdate(rideId, { state: 'Started' });
       try {
         const result = await redis.publish(`startRide:${rideId}`, socket.data.user.uid);

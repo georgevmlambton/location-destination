@@ -115,7 +115,20 @@ export const onRide = (socket: Socket) => async (rideId: string) => {
 
   redisEvents.subscribe(`startRide:${ride.id}`, async () => {
     const updatedRide = await Ride.findById(ride.id);
-    console.log('Ride Started Notification to Rider:', updatedRide);
+    if (updatedRide) {
+      socket.emit('startRide', {
+        id: updatedRide.id,
+        createdBy: { name: User.name || '' },
+        driver: { name: driver?.name || '' },
+        dropoffAddress: updatedRide.dropoffAddress,
+        pickupAddress: updatedRide.pickupAddress,
+        passengers: updatedRide.passengers,
+        preferredVehicle: updatedRide.preferredVehicle,
+        state: updatedRide.state,
+      });
+    } else {
+      console.error('Failed to retrieve updated ride');
+    }
   });
 
   socket.on('disconnect', () => {
