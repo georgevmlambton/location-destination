@@ -113,6 +113,11 @@ export const onRide = (socket: Socket) => async (rideId: string) => {
 
   sendDriverLocation();
 
+  redisEvents.subscribe(`startRide:${ride.id}`, async () => {
+    const updatedRide = await Ride.findById(ride.id);
+    console.log('Ride Started Notification to Rider:', updatedRide);
+  });
+
   socket.on('disconnect', () => {
     redisEvents.unsubscribe('driverLocationUpdate', sendDriverLocation);
     redisEvents.unsubscribe(`endRide:${rideId}`, sendEndRide);
