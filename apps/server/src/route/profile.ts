@@ -20,6 +20,7 @@ profileRouter.get('/api/profile', async (req, resp) => {
 
     const profile = createProfileResponse(req.user.uid, user);
     await redis.set('profile-' + profile.userId, JSON.stringify(profile))
+
     resp.send(profile);
   } catch (e) {
     console.error(e);
@@ -57,6 +58,7 @@ profileRouter.patch('/api/profile', async (req, resp) => {
 
     await user.save();
     const profile = createProfileResponse(req.user.uid, user);
+    await redis.set('profile-' + profile.userId, JSON.stringify(profile));
     resp.send(profile);
   } catch (e) {
     console.error(e);
