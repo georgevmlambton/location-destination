@@ -6,7 +6,7 @@ export interface IRide {
   dropoffAddress: string;
   passengers: number;
   preferredVehicle?: ('Electric' | 'Hybrid' | 'Gas')[];
-  state: 'Searching' | 'Cancelled' | 'PickingUp';
+  state: 'Searching' | 'Cancelled' | 'PickingUp' | 'Started';
   createdBy: ObjectId;
   driver?: ObjectId;
 }

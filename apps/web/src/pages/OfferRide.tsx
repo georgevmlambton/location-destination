@@ -85,6 +85,14 @@ export function OfferRide() {
     socket?.emit('confirmRide', ride.id);
   };
 
+  const completePickup = () => {
+    if (pickup) {
+      socket?.emit('startRide', pickup.ride.id);
+    } else {
+      toast.show('No pickup available to complete.', 'danger');
+    }
+  };
+
   useEffect(() => {
     if (mapContainerRef.current && !mapRef.current && position) {
       mapRef.current = new mapboxgl.Map({
@@ -185,6 +193,20 @@ export function OfferRide() {
         )}
 
         <div ref={mapContainerRef} style={{ height: '400px' }}></div>
+
+        <button
+          className="btn btn-success rounded-pill w-100 py-2 fs-4 mb-5"
+          style={{
+            backgroundColor: '#00634B',
+            border: 'none',
+            marginTop: '60%',
+            zIndex: 1,
+          }}
+          onClick={completePickup}
+        >
+          Complete Pickup
+        </button>
+
 
         <button
           type="submit"

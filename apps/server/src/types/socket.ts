@@ -16,6 +16,7 @@ export type ClientToServerEvents = {
   rejectRide: (rideId: string) => void;
   confirmRide: (rideId: string) => void;
   cancelRide: (rideId: string) => void;
+  startRide: (rideId: string) => void;
 };
 
 export type ServerToClientEvents = {
@@ -25,6 +26,7 @@ export type ServerToClientEvents = {
   confirmRide: (ride: RideResponse) => void;
   driverLocation: (location: { lat: number; lng: number }) => void;
   endRide: () => void;
+  startRide: (ride: RideResponse) => void;
 };
 
 export type SocketData = {

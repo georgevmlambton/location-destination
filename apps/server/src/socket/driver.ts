@@ -35,6 +35,15 @@ export const onOfferRide =
       );
     });
 
+    socket.on('startRide', async (rideId) => {
+      await Ride.findByIdAndUpdate(rideId, { state: 'Started' });
+      try {
+        const result = await redis.publish(`startRide:${rideId}`, socket.data.user.uid);
+      } catch (err) {
+        console.error('Error publishing to Redis:', err);
+      }
+    });
+
     socket.on('disconnect', async () => {
       redisEvents.unsubscribe(`requestRide:${socket.data.user.uid}`);
       await redis.ZREM('drivers', socket.data.user.uid);

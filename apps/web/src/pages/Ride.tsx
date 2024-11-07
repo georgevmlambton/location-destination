@@ -31,6 +31,9 @@ export function Ride() {
     lat: number;
     lng: number;
   } | null>(null);
+  const [startTheRide, setStartTheRide] = useState<{
+    ride: RideResponse
+  } | null>();
 
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -80,11 +83,13 @@ export function Ride() {
       socket.emit('ride', ride.id);
       socket.on('driverLocation', setDriverLocation);
       socket.on('endRide', cancel);
+      socket.on('startRide', setStartTheRide);
     }
 
     return () => {
       socket?.off('driverLocation', setDriverLocation);
       socket?.off('endRide', cancel);
+      socket?.off('startRide', setStartTheRide)
     };
   }, [cancel, ride.id, socket]);
 
@@ -105,6 +110,12 @@ export function Ride() {
       }
     }
   }, [pickupLocation, driverLocation]);
+
+  useEffect(() => {
+    if (startTheRide) {
+      console.log(startTheRide);
+    }
+  }, [startTheRide]);
 
   return (
     <div className="d-flex flex-column align-items-stretch px-4 position-relative h-100">
