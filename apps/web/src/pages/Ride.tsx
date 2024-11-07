@@ -4,13 +4,15 @@ import arrowLeft from '../assets/arrow-left.svg';
 import { ErrorMessage, Field, Form, Formik } from 'formik';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button, Modal } from 'react-bootstrap';
-import { getInstance } from '../axios';
 import { RideResponse } from '@location-destination/types/src/requests/ride';
 import { useSocket } from '../hook/useSocket';
 import { ToastContext } from '../providers/toast-provider';
 import mapboxgl from 'mapbox-gl';
 import carFrontFill from '../assets/car-front-fill.svg';
+// @ts-ignore
+import MapboxDirections from '@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions';
 import styles from './Ride.module.css';
+import { geocode } from '../map';
 
 const driverMarkerEl = document.createElement('div');
 driverMarkerEl.innerHTML = `<img class="carIcon" src="${carFrontFill}"></img>`;
@@ -20,7 +22,7 @@ export function Ride() {
   const toast = useContext(ToastContext);
   const navigate = useNavigate();
   const location = useLocation();
-  const ride: RideResponse = location.state.ride;
+  const [ride, setRide] = useState<RideResponse>(location.state.ride);
 
   const [showModal, setShowModal] = useState(false);
   const [driverLocation, setDriverLocation] = useState<{
@@ -31,9 +33,6 @@ export function Ride() {
     lat: number;
     lng: number;
   } | null>(null);
-  const [startTheRide, setStartTheRide] = useState<{
-    ride: RideResponse
-  } | null>();
 
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -41,16 +40,29 @@ export function Ride() {
   const driverMarker = useRef<mapboxgl.Marker>(
     new mapboxgl.Marker(driverMarkerEl)
   );
+  const directions = useRef<MapboxDirections>(
+    new MapboxDirections({
+      accessToken: import.meta.env.VITE_MAPBOX_TOKEN,
+      unit: 'metric',
+      profile: 'mapbox/driving',
+      controls: {
+        inputs: false,
+        instructions: false,
+        profileSwitcher: false,
+      },
+      placeholder: {
+        origin: 'Start Location',
+        destination: 'End Location',
+      },
+    })
+  );
 
   const socket = useSocket();
 
   const cancel = useCallback(async () => {
-    const axios = await getInstance();
-    await axios.post(`/api/ride/${ride.id}/cancel`);
     toast.show('Ride was cancelled', 'danger');
-    socket?.emit('cancelRide');
     navigate('/');
-  }, [socket, navigate, ride.id, toast]);
+  }, [navigate, toast]);
 
   const handleCancelClick = () => {
     setShowModal(true);
@@ -65,33 +77,44 @@ export function Ride() {
       mapRef.current = new mapboxgl.Map({
         container: mapContainerRef.current,
       });
-    }
 
-    const geocodeUrl = `https://api.mapbox.com/search/geocode/v6/forward?q=${encodeURIComponent(ride.pickupAddress)}&access_token=${import.meta.env.VITE_MAPBOX_TOKEN}`;
-    fetch(geocodeUrl)
-      .then((response) => response.json())
-      .then((body) =>
-        setPickupLocation({
-          lat: body.features[0].geometry.coordinates[1],
-          lng: body.features[0].geometry.coordinates[0],
-        })
-      );
+      mapRef.current.addControl(directions.current, 'top-left');
+
+      geocode(ride.pickupAddress).then(setPickupLocation);
+    }
   }, [ride]);
+
+  const startRide = useCallback(
+    async (ride: RideResponse) => {
+      setRide(ride);
+
+      if (pickupLocation) {
+        const dropoffLocation = await geocode(ride.dropoffAddress);
+        directions.current.setOrigin([pickupLocation.lng, pickupLocation.lat]);
+        directions.current.setDestination([
+          dropoffLocation.lng,
+          dropoffLocation.lat,
+        ]);
+        setPickupLocation(dropoffLocation);
+      }
+    },
+    [pickupLocation]
+  );
 
   useEffect(() => {
     if (socket) {
       socket.emit('ride', ride.id);
       socket.on('driverLocation', setDriverLocation);
-      socket.on('endRide', cancel);
-      socket.on('startRide', setStartTheRide);
+      socket.on('cancelRide', cancel);
+      socket.on('startRide', startRide);
     }
 
     return () => {
       socket?.off('driverLocation', setDriverLocation);
-      socket?.off('endRide', cancel);
-      socket?.off('startRide', setStartTheRide)
+      socket?.off('cancelRide', cancel);
+      socket?.off('startRide', startRide);
     };
-  }, [cancel, ride.id, socket]);
+  }, [cancel, ride.id, socket, startRide]);
 
   useEffect(() => {
     if (mapRef.current) {
@@ -110,12 +133,6 @@ export function Ride() {
       }
     }
   }, [pickupLocation, driverLocation]);
-
-  useEffect(() => {
-    if (startTheRide) {
-      console.log(startTheRide);
-    }
-  }, [startTheRide]);
 
   return (
     <div className="d-flex flex-column align-items-stretch px-4 position-relative h-100">
@@ -195,9 +212,15 @@ export function Ride() {
         )}
       </Formik>
 
-      <h3 className="text-dark-emphasis text-center">
-        {ride.driver?.name} is on their way
-      </h3>
+      {ride.state === 'PickingUp' && (
+        <h3 className="text-dark-emphasis text-center">
+          {ride.driver?.name} is on their way
+        </h3>
+      )}
+
+      {ride.state === 'Started' && (
+        <h3 className="text-dark-emphasis text-center">Enjoy your ride</h3>
+      )}
 
       <div ref={mapContainerRef} style={{ height: '400px' }}></div>
 
@@ -232,7 +255,14 @@ export function Ride() {
             >
               Close
             </Button>
-            <Button className="rounded-pill" variant="danger" onClick={cancel}>
+            <Button
+              className="rounded-pill"
+              variant="danger"
+              onClick={() => {
+                socket?.emit('cancelRide');
+                cancel();
+              }}
+            >
               Yes, Cancel
             </Button>
           </Modal.Footer>
