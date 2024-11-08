@@ -45,6 +45,10 @@ export const onOfferRide =
       }
     });
 
+    socket.on('dropoff', async (rideId: string) => {
+      redis.publish(`endRide:${rideId}`, '');
+    });
+
     socket.on('disconnect', async () => {
       redisEvents.unsubscribe(`requestRide:${socket.data.user.uid}`);
       await redis.ZREM('drivers', socket.data.user.uid);

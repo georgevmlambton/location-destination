@@ -102,6 +102,16 @@ export function OfferRide() {
     }
   };
 
+  const dropoff = () => {
+    if (ride) {
+      socket?.emit('dropoff', ride.ride.id);
+      toast.show('Ride completed', 'success');
+      navigate('/ride/summary', { state: { ride: ride.ride } });
+    } else {
+      toast.show('No pickup available to complete.', 'danger');
+    }
+  };
+
   useEffect(() => {
     if (mapContainerRef.current && !mapRef.current && position) {
       mapRef.current = new mapboxgl.Map({
@@ -227,6 +237,21 @@ export function OfferRide() {
             onClick={completePickup}
           >
             Complete Pickup
+          </button>
+        )}
+
+        {ride?.ride.state === 'Started' && (
+          <button
+            className="btn btn-success rounded-pill w-100 py-2 fs-4 mb-5"
+            style={{
+              backgroundColor: '#00634B',
+              border: 'none',
+              marginTop: '60%',
+              zIndex: 1,
+            }}
+            onClick={dropoff}
+          >
+            Complete Drop-off
           </button>
         )}
 

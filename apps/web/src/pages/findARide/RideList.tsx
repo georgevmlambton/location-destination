@@ -119,6 +119,7 @@ export function RideList() {
                   <i className="bi bi-geo-alt"></i>
                 </span>
                 <Field
+                  disabled
                   type="text"
                   placeholder="Pickup Address"
                   className={`form-control py-2 ps-5 fs-5 ${
@@ -141,6 +142,7 @@ export function RideList() {
                   <i className="bi bi-geo-alt-fill"></i>
                 </span>
                 <Field
+                  disabled
                   type="text"
                   placeholder="Drop-off Address"
                   className={`form-control py-2 ps-5 fs-5 ${

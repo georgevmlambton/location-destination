@@ -105,9 +105,17 @@ export const onRide = (socket: Socket) => async (rideId: string) => {
     socket.emit('cancelRide');
   };
 
+  const endRide = async () => {
+    ride.state = 'Completed';
+    await ride.save();
+    socket.emit('endRide');
+  };
+
   redisEvents.subscribe('driverLocationUpdate', sendDriverLocation);
 
   redisEvents.subscribe(`cancelRide:${rideId}`, sendCancelRide);
+
+  redisEvents.subscribe(`endRide:${rideId}`, endRide);
 
   socket.on('cancelRide', () => {
     redisEvents.unsubscribe(`cancelRide:${rideId}`, sendCancelRide);
@@ -139,6 +147,7 @@ export const onRide = (socket: Socket) => async (rideId: string) => {
   socket.on('disconnect', () => {
     redisEvents.unsubscribe('driverLocationUpdate', sendDriverLocation);
     redisEvents.unsubscribe(`cancelRide:${rideId}`, sendCancelRide);
+    redisEvents.unsubscribe(`endRide:${rideId}`, endRide);
   });
 };
 

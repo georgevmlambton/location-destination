@@ -18,6 +18,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import './App.css';
 import { MainLayout } from './layout/MainLayout';
 import { Ride } from './pages/Ride';
+import { TripSummary } from './pages/TripSummary';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
@@ -71,6 +72,10 @@ const router = createBrowserRouter([
   {
     path: '/profile',
     element: <AuthenticatedRoute element={<Profile />} />,
+  },
+  {
+    path: '/ride/summary',
+    element: <AuthenticatedRoute element={<TripSummary />} />,
   },
 ]);
 

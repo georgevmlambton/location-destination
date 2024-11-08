@@ -40,7 +40,12 @@ export class RideCreateRequest {
   }
 }
 
-export type RideState = 'Searching' | 'Cancelled' | 'PickingUp' | 'Started';
+export type RideState =
+  | 'Searching'
+  | 'Cancelled'
+  | 'PickingUp'
+  | 'Started'
+  | 'Completed';
 
 export type RideResponse = {
   id: string;

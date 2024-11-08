@@ -64,6 +64,11 @@ export function Ride() {
     navigate('/');
   }, [navigate, toast]);
 
+  const end = useCallback(() => {
+    toast.show('Ride complete', 'success');
+    navigate('/ride/summary', { state: { ride } });
+  }, [navigate, toast, ride]);
+
   const handleCancelClick = () => {
     setShowModal(true);
   };
@@ -107,14 +112,16 @@ export function Ride() {
       socket.on('driverLocation', setDriverLocation);
       socket.on('cancelRide', cancel);
       socket.on('startRide', startRide);
+      socket.on('endRide', end);
     }
 
     return () => {
       socket?.off('driverLocation', setDriverLocation);
       socket?.off('cancelRide', cancel);
       socket?.off('startRide', startRide);
+      socket?.off('endRide', end);
     };
-  }, [cancel, ride.id, socket, startRide]);
+  }, [cancel, end, ride.id, socket, startRide]);
 
   useEffect(() => {
     if (mapRef.current) {
@@ -159,6 +166,7 @@ export function Ride() {
                   <i className="bi bi-geo-alt"></i>
                 </span>
                 <Field
+                  disabled
                   type="text"
                   placeholder="Pickup Address"
                   className={`form-control py-2 ps-5 fs-5 ${
@@ -181,6 +189,7 @@ export function Ride() {
                   <i className="bi bi-geo-alt-fill"></i>
                 </span>
                 <Field
+                  disabled
                   type="text"
                   placeholder="Drop-off Address"
                   className={`form-control py-2 ps-5 fs-5 ${
