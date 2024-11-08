@@ -6,8 +6,8 @@ import { Socket } from '../types/socket';
 
 export const onOfferRide =
   (socket: Socket) => async (location: { lat: number; lng: number }) => {
-    const sendEndRide = () => {
-      socket.emit('endRide');
+    const sendCancelRide = () => {
+      socket.emit('cancelRide');
     };
 
     socket.on('driverLocation', (location) => updateLocation(socket, location));
@@ -23,25 +23,30 @@ export const onOfferRide =
     });
 
     socket.on('confirmRide', (rideId) => {
-      redisEvents.subscribe(`endRide:${rideId}`, sendEndRide);
+      redisEvents.subscribe(`cancelRide:${rideId}`, sendCancelRide);
       redis.publish(`confirmRide:${rideId}`, socket.data.user.uid);
 
       socket.on('cancelRide', () => {
-        redis.publish(`endRide:${rideId}`, '');
+        redisEvents.unsubscribe(`cancelRide:${rideId}`, sendCancelRide);
+        redis.publish(`cancelRide:${rideId}`, '');
       });
 
       socket.on('disconnect', () =>
-        redisEvents.unsubscribe(`endRide:${rideId}`, sendEndRide)
+        redisEvents.unsubscribe(`cancelRide:${rideId}`, sendCancelRide)
       );
     });
 
     socket.on('startRide', async (rideId) => {
       await Ride.findByIdAndUpdate(rideId, { state: 'Started' });
       try {
-        const result = await redis.publish(`startRide:${rideId}`, socket.data.user.uid);
+        await redis.publish(`startRide:${rideId}`, socket.data.user.uid);
       } catch (err) {
         console.error('Error publishing to Redis:', err);
       }
+    });
+
+    socket.on('dropoff', async (rideId: string) => {
+      redis.publish(`endRide:${rideId}`, '');
     });
 
     socket.on('disconnect', async () => {

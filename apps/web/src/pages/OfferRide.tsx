@@ -11,6 +11,7 @@ import { usePosition } from '../hook/usePosition';
 import { useSocket } from '../hook/useSocket';
 import { RideResponse } from '@location-destination/types/src/requests/ride';
 import { ToastContext } from '../providers/toast-provider';
+import { geocode } from '../map';
 
 export function OfferRide() {
   const navigate = useNavigate();
@@ -22,14 +23,15 @@ export function OfferRide() {
     ride: RideResponse;
     distanceMin: number;
   } | null>(null);
-  const [pickup, setPickup] = useState<{
+  const [ride, setRide] = useState<{
     ride: RideResponse;
-    location: { lat: number; lng: number };
+    pickupLocation: { lat: number; lng: number };
+    dropoffLocation: { lat: number; lng: number };
   } | null>(null);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const mapMarker = useRef<mapboxgl.Marker>(new mapboxgl.Marker());
-  const pickupMarker = useRef<mapboxgl.Marker>(new mapboxgl.Marker());
+  const mapMarker2 = useRef<mapboxgl.Marker>(new mapboxgl.Marker());
   const directions = useRef<MapboxDirections | null>(null);
   const startedRef = useRef(false);
 
@@ -47,28 +49,23 @@ export function OfferRide() {
     setRideRequest(null);
   };
 
-  const end = useCallback(() => {
-    if (pickup) {
-      socket?.emit('cancelRide', pickup.ride.id);
-    }
-
+  const cancel = useCallback(() => {
     toast.show('Ride was cancelled', 'danger');
     navigate('/');
-  }, [navigate, pickup, socket, toast]);
+  }, [navigate, toast]);
 
   const confirmRide = async (ride: RideResponse) => {
-    const geocodeUrl = `https://api.mapbox.com/search/geocode/v6/forward?q=${encodeURIComponent(ride.pickupAddress)}&access_token=${import.meta.env.VITE_MAPBOX_TOKEN}`;
-    const response = await fetch(geocodeUrl);
-    const body = await response.json();
-    const pickupLocation = {
-      lat: body.features[0].geometry.coordinates[1],
-      lng: body.features[0].geometry.coordinates[0],
-    };
+    const pickupLocation = await geocode(ride.pickupAddress);
+    const dropoffLocation = await geocode(ride.dropoffAddress);
 
     setRideRequest(null);
-    setPickup({
-      location: pickupLocation,
-      ride,
+    setRide({
+      pickupLocation,
+      dropoffLocation,
+      ride: {
+        ...ride,
+        state: 'PickingUp',
+      },
     });
 
     if (mapRef.current && directions.current && position) {
@@ -86,8 +83,30 @@ export function OfferRide() {
   };
 
   const completePickup = () => {
-    if (pickup) {
-      socket?.emit('startRide', pickup.ride.id);
+    if (ride) {
+      socket?.emit('startRide', ride.ride.id);
+      setRide({ ...ride, ride: { ...ride.ride, state: 'Started' } });
+
+      if (mapRef.current && directions.current && position) {
+        directions.current.setOrigin([
+          ride.pickupLocation.lng,
+          ride.pickupLocation.lat,
+        ]);
+        directions.current.setDestination([
+          ride.dropoffLocation.lng,
+          ride.dropoffLocation.lat,
+        ]);
+      }
+    } else {
+      toast.show('No pickup available to complete.', 'danger');
+    }
+  };
+
+  const dropoff = () => {
+    if (ride) {
+      socket?.emit('dropoff', ride.ride.id);
+      toast.show('Ride completed', 'success');
+      navigate('/ride/summary', { state: { ride: ride.ride } });
     } else {
       toast.show('No pickup available to complete.', 'danger');
     }
@@ -137,7 +156,7 @@ export function OfferRide() {
       }
 
       socket.on('requestRide', onRequestRide);
-      socket.on('endRide', end);
+      socket.on('cancelRide', cancel);
     }
 
     if (mapRef.current && position) {
@@ -152,9 +171,16 @@ export function OfferRide() {
         })
         .addTo(mapRef.current);
 
-      if (pickup) {
-        pickupMarker.current.setLngLat(pickup.location).addTo(mapRef.current);
-        mapRef.current.fitBounds([{ lat, lng }, pickup.location], {
+      if (ride?.ride.state === 'PickingUp') {
+        mapMarker2.current.setLngLat(ride.pickupLocation).addTo(mapRef.current);
+        mapRef.current.fitBounds([{ lat, lng }, ride.pickupLocation], {
+          padding: 50,
+        });
+      } else if (ride?.ride.state === 'Started') {
+        mapMarker2.current
+          .setLngLat(ride.dropoffLocation)
+          .addTo(mapRef.current);
+        mapRef.current.fitBounds([{ lat, lng }, ride.dropoffLocation], {
           padding: 50,
         });
       } else {
@@ -164,9 +190,9 @@ export function OfferRide() {
 
     return () => {
       socket?.off('requestRide', onRequestRide);
-      socket?.off('endRide', end);
+      socket?.off('cancelRide', cancel);
     };
-  }, [onRequestRide, position, socket, pickup, end]);
+  }, [onRequestRide, position, socket, ride, cancel]);
 
   return (
     <div className="d-flex flex-column align-items-stretch px-4 position-relative h-100">
@@ -181,32 +207,53 @@ export function OfferRide() {
           justifyContent: 'space-between',
         }}
       >
-        {!pickup && (
+        {!ride && (
           <h3 className="text-dark-emphasis text-center">
             Waiting for requests
           </h3>
         )}
-        {pickup && (
+        {ride?.ride?.state === 'PickingUp' && (
           <h3 className="text-dark-emphasis text-center">
-            Picking up {pickup.ride.createdBy.name}
+            Picking up {ride.ride.createdBy.name}
+          </h3>
+        )}
+        {ride?.ride?.state === 'Started' && (
+          <h3 className="text-dark-emphasis text-center">
+            Dropping off {ride.ride.createdBy.name}
           </h3>
         )}
 
         <div ref={mapContainerRef} style={{ height: '400px' }}></div>
 
-        <button
-          className="btn btn-success rounded-pill w-100 py-2 fs-4 mb-5"
-          style={{
-            backgroundColor: '#00634B',
-            border: 'none',
-            marginTop: '60%',
-            zIndex: 1,
-          }}
-          onClick={completePickup}
-        >
-          Complete Pickup
-        </button>
+        {ride?.ride.state === 'PickingUp' && (
+          <button
+            className="btn btn-success rounded-pill w-100 py-2 fs-4 mb-5"
+            style={{
+              backgroundColor: '#00634B',
+              border: 'none',
+              marginTop: '60%',
+              zIndex: 1,
+            }}
+            onClick={completePickup}
+          >
+            Complete Pickup
+          </button>
+        )}
 
+        {ride?.ride.state === 'Started' && (
+          <button
+            className="btn btn-success rounded-pill w-100 py-2 fs-4 mb-5"
+            style={{
+              backgroundColor: '#00634B',
+              border: 'none',
+              marginTop: '60%',
+              zIndex: 1,
+            }}
+            onClick={dropoff}
+          >
+            Complete Drop-off
+          </button>
+        )}
 
         <button
           type="submit"
@@ -241,7 +288,14 @@ export function OfferRide() {
             >
               Close
             </Button>
-            <Button className="rounded-pill" variant="danger" onClick={end}>
+            <Button
+              className="rounded-pill"
+              variant="danger"
+              onClick={() => {
+                socket?.emit('cancelRide', ride?.ride.id);
+                cancel();
+              }}
+            >
               Stop
             </Button>
           </Modal.Footer>

@@ -12,7 +12,7 @@ export function NavButton({
   return (
     <button
       onClick={hidden ? undefined : onClick}
-      className={`btn btn-light d-flex justify-content-center align-content-center p-2 ${hidden ? 'invisible' : ''} ${className}`}
+      className={`btn btn-light d-flex justify-content-center align-items-center p-2 ${hidden ? 'invisible' : ''} ${className}`}
       style={{
         border: '1px solid #CCCCCC',
         borderRadius: '50%',

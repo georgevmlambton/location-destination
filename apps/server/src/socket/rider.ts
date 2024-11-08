@@ -99,16 +99,27 @@ export const onRide = (socket: Socket) => async (rideId: string) => {
     });
   };
 
-  const sendEndRide = () => {
+  const sendCancelRide = async () => {
+    ride.state = 'Cancelled';
+    await ride.save();
+    socket.emit('cancelRide');
+  };
+
+  const endRide = async () => {
+    ride.state = 'Completed';
+    await ride.save();
     socket.emit('endRide');
   };
 
   redisEvents.subscribe('driverLocationUpdate', sendDriverLocation);
 
-  redisEvents.subscribe(`endRide:${rideId}`, sendEndRide);
+  redisEvents.subscribe(`cancelRide:${rideId}`, sendCancelRide);
+
+  redisEvents.subscribe(`endRide:${rideId}`, endRide);
 
   socket.on('cancelRide', () => {
-    redis.publish(`endRide:${rideId}`, '');
+    redisEvents.unsubscribe(`cancelRide:${rideId}`, sendCancelRide);
+    redis.publish(`cancelRide:${rideId}`, '');
   });
 
   sendDriverLocation();
@@ -116,6 +127,8 @@ export const onRide = (socket: Socket) => async (rideId: string) => {
   redisEvents.subscribe(`startRide:${ride.id}`, async () => {
     const updatedRide = await Ride.findById(ride.id);
     if (updatedRide) {
+      updatedRide.state = 'Started';
+      await updatedRide.save();
       socket.emit('startRide', {
         id: updatedRide.id,
         createdBy: { name: User.name || '' },
@@ -133,7 +146,8 @@ export const onRide = (socket: Socket) => async (rideId: string) => {
 
   socket.on('disconnect', () => {
     redisEvents.unsubscribe('driverLocationUpdate', sendDriverLocation);
-    redisEvents.unsubscribe(`endRide:${rideId}`, sendEndRide);
+    redisEvents.unsubscribe(`cancelRide:${rideId}`, sendCancelRide);
+    redisEvents.unsubscribe(`endRide:${rideId}`, endRide);
   });
 };
 
