@@ -102,10 +102,9 @@ export function OfferRide() {
     }
   };
 
-  const dropoff = () => {
+  const dropoff = async () => {
     if (ride) {
-      socket?.emit('dropoff', ride.ride.id);
-      toast.show('Ride completed', 'success');
+      await socket?.emitWithAck('dropoff', ride.ride.id);
       navigate('/ride/summary', { state: { ride: ride.ride } });
     } else {
       toast.show('No pickup available to complete.', 'danger');

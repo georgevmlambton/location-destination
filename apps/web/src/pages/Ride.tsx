@@ -65,9 +65,8 @@ export function Ride() {
   }, [navigate, toast]);
 
   const end = useCallback(() => {
-    toast.show('Ride complete', 'success');
     navigate('/ride/summary', { state: { ride } });
-  }, [navigate, toast, ride]);
+  }, [navigate, ride]);
 
   const handleCancelClick = () => {
     setShowModal(true);

@@ -101,3 +101,44 @@ rideRouter.post('/api/ride/:id/cancel', async (req, resp) => {
     resp.status(500).send({ message: 'Internal Server Error' });
   }
 });
+
+rideRouter.get('/api/ride/:id', async (req, resp) => {
+  try {
+    const ride = await Ride.findById(req.params.id)
+      .populate<{
+        createdBy: IUser;
+      }>('createdBy')
+      .populate<{ driver: IUser }>('driver');
+
+    if (!ride) {
+      return resp.status(404).send({ message: 'Ride not found' });
+    }
+
+    ride.state = 'Cancelled';
+    await ride.save();
+
+    const response: RideResponse = {
+      id: ride.id,
+      createdBy: { name: ride.createdBy.name || '' },
+      driver: { name: ride.driver.name || '' },
+      pickupAddress: ride.pickupAddress,
+      dropoffAddress: ride.dropoffAddress,
+      state: ride.state,
+      passengers: ride.passengers,
+      preferredVehicle: ride.preferredVehicle,
+      payment: ride.payment,
+    };
+
+    resp.send(response);
+  } catch (e) {
+    console.error(e);
+
+    if (e instanceof ValidationError) {
+      return resp
+        .status(400)
+        .send({ message: 'Validation Errors: ' + e.errors.join(', ') });
+    }
+
+    resp.status(500).send({ message: 'Internal Server Error' });
+  }
+});

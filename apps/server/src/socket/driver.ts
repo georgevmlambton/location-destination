@@ -1,6 +1,10 @@
 import { Ride } from '../db/ride';
 import { IUser } from '../db/user';
-import { geocodeAddress, getDrivingDurationMinutes } from '../maps';
+import {
+  geocodeAddress,
+  getDrivingDistanceMeters,
+  getDrivingDurationMinutes,
+} from '../maps';
 import { redis, redisEvents } from '../redis';
 import { Socket } from '../types/socket';
 
@@ -45,7 +49,46 @@ export const onOfferRide =
       }
     });
 
-    socket.on('dropoff', async (rideId: string) => {
+    socket.on('dropoff', async (rideId: string, callback) => {
+      const ride = await Ride.findById(rideId);
+
+      if (!ride) {
+        console.log('Ride not found');
+        return;
+      }
+
+      const distanceMeters = await getDrivingDistanceMeters(
+        ride.pickupAddress,
+        ride.dropoffAddress
+      );
+      const baseFare = 2 * 100;
+      const ratePerKm = 1;
+      const distanceFare = Math.round(
+        (distanceMeters / 1000) * ratePerKm * 100
+      );
+      const subtotal = baseFare + distanceFare;
+      const taxPercent = 13;
+      const tax = Math.round((taxPercent / 100) * subtotal);
+      const total = subtotal + tax;
+      const driverPercent = 70;
+      const driver = Math.round((driverPercent / 100) * total);
+
+      ride.payment = {
+        baseFare,
+        ratePerKm,
+        distanceFare,
+        subtotal,
+        taxPercent,
+        tax,
+        total,
+        driverPercent,
+        driver,
+      };
+
+      await ride.save();
+
+      callback();
+
       redis.publish(`endRide:${rideId}`, '');
     });
 

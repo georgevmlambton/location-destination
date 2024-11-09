@@ -60,4 +60,15 @@ export type RideResponse = {
   state: RideState;
   passengers: number;
   preferredVehicle?: ('Electric' | 'Hybrid' | 'Gas')[];
+  payment?: {
+    baseFare: number;
+    ratePerKm: number;
+    distanceFare: number;
+    subtotal: number;
+    taxPercent: number;
+    tax: number;
+    total: number;
+    driverPercent: number;
+    driver: number;
+  };
 };
