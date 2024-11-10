@@ -16,7 +16,7 @@ export type ClientToServerEvents = {
   rejectRide: (rideId: string) => void;
   confirmRide: (rideId: string) => void;
   cancelRide: (rideId: string) => void;
-  dropoff: (rideId: string) => void;
+  dropoff: (rideId: string, callback: () => void) => void;
   startRide: (rideId: string) => void;
 };
 

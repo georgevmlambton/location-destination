@@ -4,14 +4,22 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { NavButton } from '../components/nav/NavButton';
 import { Field, Form, Formik } from 'formik';
 import { RideResponse } from '@location-destination/types/src/requests/ride';
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { UserContext } from '../providers/user-provider';
+import { getInstance } from '../axios';
 
 export function TripSummary() {
   const navigate = useNavigate();
   const location = useLocation();
   const user = useContext(UserContext);
-  const ride: RideResponse = location.state.ride;
+  const [ride, setRide] = useState<RideResponse>(location.state.ride);
+
+  useEffect(() => {
+    getInstance().then(async (axios) => {
+      const response = await axios.get<RideResponse>(`/api/ride/${ride.id}`);
+      setRide(response.data);
+    });
+  }, [ride.id]);
 
   return (
     <div className="d-flex flex-column align-items-stretch position-relative p-4 h-100 w-100">
@@ -99,6 +107,58 @@ export function TripSummary() {
           </h1>
         </div>
       </div>
+
+      {ride.payment && (
+        <table
+          className="table border border-dark-subtle p-2 mt-5"
+          style={{
+            tableLayout: 'fixed',
+            borderCollapse: 'separate',
+            borderSpacing: '0',
+            borderRadius: '25px',
+          }}
+        >
+          <tbody>
+            <tr className="">
+              <td className="text-end pr-3 fs-5">Base Fare</td>
+              <td className="text-start pl-3 fs-5">
+                ${ride.payment.baseFare / 100}
+              </td>
+            </tr>
+            <tr className="">
+              <td className="text-end pr-3 fs-5">
+                Distance (${ride.payment.ratePerKm}/km)
+              </td>
+              <td className="text-start pl-3 fs-5">$5</td>
+            </tr>
+            <tr className="">
+              <td className="text-end pr-3 fs-5">Subtotal</td>
+              <td className="text-start pl-3 fs-5">${ride.payment.subtotal}</td>
+            </tr>
+            <tr className="">
+              <td className="text-end pr-3 fs-5">
+                Tax ({ride.payment.taxPercent}%)
+              </td>
+              <td className="text-start pl-3 fs-5">
+                ${ride.payment.tax / 100}
+              </td>
+            </tr>
+            <tr className="">
+              <td className="text-end pr-3 fs-2">Total</td>
+              <td className="text-start pl-3 fs-2">
+                ${ride.payment.total / 100}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      )}
+
+      {ride.payment && user.profile?.type === 'Driver' && (
+        <div className="d-flex flex-row justify-content-center">
+          <h2 className="me-4">Your Cut ({ride.payment.driverPercent}%)</h2>
+          <h2>${ride.payment.driver / 100}</h2>
+        </div>
+      )}
     </div>
   );
 }

@@ -9,6 +9,17 @@ export interface IRide {
   state: 'Searching' | 'Cancelled' | 'PickingUp' | 'Started' | 'Completed';
   createdBy: ObjectId;
   driver?: ObjectId;
+  payment?: {
+    baseFare: number;
+    ratePerKm: number;
+    distanceFare: number;
+    subtotal: number;
+    taxPercent: number;
+    tax: number;
+    total: number;
+    driverPercent: number;
+    driver: number;
+  };
 }
 
 const rideSchema = new Schema<IRide>({
@@ -19,6 +30,7 @@ const rideSchema = new Schema<IRide>({
   preferredVehicle: { type: Array, required: false },
   createdBy: { type: Types.ObjectId, required: true, ref: 'User' },
   driver: { type: Types.ObjectId, required: false, ref: 'User' },
+  payment: { type: Object, required: false },
 });
 
 export const Ride = model<IRide>('Ride', rideSchema);

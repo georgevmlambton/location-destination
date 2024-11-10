@@ -80,6 +80,34 @@ export async function getDrivingDurationMinutes(
   }
 }
 
+export async function getDrivingDistanceMeters(
+  address1: string,
+  address2: string
+) {
+  const [p1, p2] = await Promise.all([
+    geocodeAddress(address1),
+    geocodeAddress(address2),
+  ]);
+
+  if (p1 == null || p2 == null) {
+    return null;
+  }
+
+  const coordinates = `${p1.lng},${p1.lat};${p2.lng},${p2.lat}`;
+  const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${encodeURIComponent(coordinates)}?alternatives=false&geometries=geojson&language=en&overview=simplified&steps=false&notifications=none&access_token=${config.mapboxToken}`;
+
+  const response = await fetch(url);
+  const body = await response.json();
+
+  if (!body.routes?.length) {
+    return null;
+  }
+
+  const meters = body.routes[0].distance;
+
+  return meters;
+}
+
 function getRedisDurationKey(
   p1: { lat: number; lng: number },
   p2: { lat: number; lng: number }
