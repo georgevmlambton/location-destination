@@ -19,6 +19,7 @@ import './App.css';
 import { MainLayout } from './layout/MainLayout';
 import { Ride } from './pages/Ride';
 import { TripSummary } from './pages/TripSummary';
+import { TripHistory } from './pages/TripHistory';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
@@ -76,6 +77,10 @@ const router = createBrowserRouter([
   {
     path: '/ride/summary',
     element: <AuthenticatedRoute element={<TripSummary />} />,
+  },
+  {
+    path: '/triphistory',
+    element: <AuthenticatedRoute element={<TripHistory />} />,
   },
 ]);
 
