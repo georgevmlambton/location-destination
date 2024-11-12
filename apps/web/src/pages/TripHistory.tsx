@@ -19,6 +19,10 @@ export function TripHistory() {
     });
   }, []);
 
+  const handleTripClick = (trip: RideResponse) => {
+    navigate('/ride/summary', { state: { ride: trip } });
+  };
+
   return (
     <div className="d-flex flex-column align-items-stretch position-relative p-4 h-100 w-100">
       <div className="pb-5 position-relative w-100">
@@ -34,6 +38,7 @@ export function TripHistory() {
           <div
             key={trip.id}
             className="trip-item"
+            onClick={() => handleTripClick(trip)}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -64,8 +69,8 @@ export function TripHistory() {
             </div>
             <div className="trip-fare" style={{ fontWeight: 'bold' }}>
               ${user.profile?.type === 'Driver'
-                  ? trip.payment && trip.payment.driver / 100 || 'Cancelled'
-                  : trip.payment && trip.payment.total / 100 || 'Cancelled'}
+                ? (trip.payment && trip.payment.driver / 100) || 'Cancelled'
+                : (trip.payment && trip.payment.total / 100) || 'Cancelled'}
             </div>
           </div>
         ))}
