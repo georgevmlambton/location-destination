@@ -142,3 +142,37 @@ rideRouter.get('/api/ride/:id', async (req, resp) => {
     resp.status(500).send({ message: 'Internal Server Error' });
   }
 });
+
+rideRouter.get('/api/rides', async (req, resp) => {
+  try {
+    const user = await User.findOne({ uid: req.user.uid });
+
+    if (!user) {
+      return resp.status(400).send({ message: 'Unauthorized' });
+    }
+
+    const rides = await Ride.find({
+      $or: [{ createdBy: user.id }, { driver: user.id }],
+    })
+      .populate<{ createdBy: IUser }>('createdBy')
+      .populate<{ driver: IUser }>('driver');
+
+      if (!rides || rides.length === 0) {
+        return resp.status(404).send({ message: 'No rides found for this user' });
+      }
+
+    const response = rides.map(ride => ({
+      id: ride.id,
+      pickupAddress: ride.pickupAddress,
+      dropoffAddress: ride.dropoffAddress,
+      payment: ride.payment,
+      driver: ride.driver,
+      createdBy: ride.createdBy,
+    }));
+    
+    resp.json(response);
+  } catch (e) {
+    console.error(e);
+    resp.status(500).send({ message: 'Internal Server Error' });
+  }
+});

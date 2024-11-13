@@ -51,9 +51,11 @@ export type RideResponse = {
   id: string;
   createdBy: {
     name: string;
+    photoUrl?: string | null;
   };
   driver?: {
     name: string;
+    photoUrl?: string | null;
   };
   pickupAddress: string;
   dropoffAddress: string;
