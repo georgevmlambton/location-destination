@@ -50,7 +50,7 @@ export type RideState =
 export type RideResponse = {
   id: string;
   createdBy: {
-    uid: string;
+    uid?: string;
     name: string;
     photoUrl?: string | null;
   };

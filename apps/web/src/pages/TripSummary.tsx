@@ -153,7 +153,7 @@ export function TripSummary() {
         </table>
       )}
 
-      {ride.payment && user.profile?.userId !== ride.createdBy.uid && (
+      {ride.payment && user.profile?.name !== ride.createdBy.name && (
         <div className="d-flex flex-row justify-content-center">
           <h2 className="me-4">Your Cut ({ride.payment.driverPercent}%)</h2>
           <h2>${ride.payment.driver / 100}</h2>
