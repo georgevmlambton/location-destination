@@ -1,4 +1,5 @@
 import { useContext } from 'react';
+import receiptIcon from '../assets/receipt-solid.svg';
 import personFill from '../assets/person-fill.svg';
 import findOfferRide from '../assets/find-offer-ride.svg';
 import { UserContext } from '../providers/user-provider';
@@ -12,6 +13,23 @@ export default function Home() {
     <div className="w-100 h-100 d-flex flex-column align-items-center">
       <div className="p-4 align-self-stretch">
         <div className="d-flex justify-content-between position-relative">
+          <img
+            className="rounded-circle"
+            src={receiptIcon}
+            alt="Trip History"
+            style={{
+              width: '50px',
+              height: '50px',
+              border: '2px solid #CCCCCC',
+              background: 'white',
+              cursor: 'pointer',
+              position: 'absolute',
+              zIndex: 10,
+              top: '10px',
+              left: '10px',
+            }}
+            onClick={() => navigate('/triphistory')}
+          />
           <img
             className="rounded-circle"
             src={profile?.photoUrl || personFill}
