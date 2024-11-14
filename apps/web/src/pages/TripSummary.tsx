@@ -101,7 +101,7 @@ export function TripSummary() {
         <div className="flex-grow-1 ps-3">
           <p className="my-2">You traveled with</p>
           <h1 className="">
-            {user.profile?.name !== ride.createdBy.name
+            {user.profile?.userId !== ride.createdBy?.uid
               ? ride.createdBy?.name
               : ride.driver?.name}
           </h1>
@@ -153,7 +153,7 @@ export function TripSummary() {
         </table>
       )}
 
-      {ride.payment && user.profile?.name !== ride.createdBy.name && (
+      {ride.payment && user.profile?.userId !== ride.createdBy?.uid && (
         <div className="d-flex flex-row justify-content-center">
           <h2 className="me-4">Your Cut ({ride.payment.driverPercent}%)</h2>
           <h2>${ride.payment.driver / 100}</h2>

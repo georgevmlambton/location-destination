@@ -43,7 +43,7 @@ rideRouter.post('/api/ride', async (req, resp) => {
 
     const response: RideResponse = {
       id: ride.id,
-      createdBy: { name: user.name || '' },
+      createdBy: { name: user.name || '', uid: user.uid },
       pickupAddress: ride.pickupAddress,
       dropoffAddress: ride.dropoffAddress,
       state: ride.state,
@@ -80,7 +80,7 @@ rideRouter.post('/api/ride/:id/cancel', async (req, resp) => {
 
     const response: RideResponse = {
       id: ride.id,
-      createdBy: { name: ride.createdBy.name || '' },
+      createdBy: { name: ride.createdBy.name || '', uid: ride.createdBy.uid },
       pickupAddress: ride.pickupAddress,
       dropoffAddress: ride.dropoffAddress,
       state: ride.state,
@@ -119,7 +119,7 @@ rideRouter.get('/api/ride/:id', async (req, resp) => {
 
     const response: RideResponse = {
       id: ride.id,
-      createdBy: { name: ride.createdBy.name || '' },
+      createdBy: { name: ride.createdBy.name || '', uid: ride.createdBy.uid },
       driver: { name: ride.driver.name || '' },
       pickupAddress: ride.pickupAddress,
       dropoffAddress: ride.dropoffAddress,
