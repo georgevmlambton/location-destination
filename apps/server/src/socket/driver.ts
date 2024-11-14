@@ -1,4 +1,5 @@
 import { Ride } from '../db/ride';
+import { Transaction } from '../db/transaction';
 import { IUser } from '../db/user';
 import {
   geocodeAddress,
@@ -7,6 +8,7 @@ import {
 } from '../maps';
 import { redis, redisEvents } from '../redis';
 import { Socket } from '../types/socket';
+import { Account } from '../db/account';
 
 export const onOfferRide =
   (socket: Socket) => async (location: { lat: number; lng: number }) => {
@@ -71,7 +73,7 @@ export const onOfferRide =
       const tax = Math.round((taxPercent / 100) * subtotal);
       const total = subtotal + tax;
       const driverPercent = 70;
-      const driver = Math.round((driverPercent / 100) * total);
+      const driverPayout = Math.round((driverPercent / 100) * total);
 
       ride.payment = {
         baseFare,
@@ -82,10 +84,36 @@ export const onOfferRide =
         tax,
         total,
         driverPercent,
-        driver,
+        driver: driverPayout,
       };
 
-      await ride.save();
+      await Promise.all([
+        new Transaction({
+          user: ride.driver,
+          amount: driverPayout,
+          type: 'credit',
+          ride: ride.id,
+          createdAt: new Date(),
+        }).save(),
+        new Transaction({
+          user: ride.createdBy,
+          amount: total,
+          type: 'debit',
+          ride: ride.id,
+          createdAt: new Date(),
+        }).save(),
+        Account.findOneAndUpdate(
+          { user: ride.driver },
+          { $inc: { amount: driverPayout } },
+          { upsert: true, new: true }
+        ),
+        Account.findOneAndUpdate(
+          { user: ride.createdBy },
+          { $inc: { amount: -total } },
+          { upsert: true, new: true }
+        ),
+        ride.save(),
+      ]);
 
       callback();
 

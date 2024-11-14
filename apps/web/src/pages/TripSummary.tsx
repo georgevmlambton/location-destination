@@ -129,11 +129,15 @@ export function TripSummary() {
               <td className="text-end pr-3 fs-5">
                 Distance (${ride.payment.ratePerKm}/km)
               </td>
-              <td className="text-start pl-3 fs-5">$5</td>
+              <td className="text-start pl-3 fs-5">
+                ${ride.payment.distanceFare / 100}
+              </td>
             </tr>
             <tr className="">
               <td className="text-end pr-3 fs-5">Subtotal</td>
-              <td className="text-start pl-3 fs-5">${ride.payment.subtotal}</td>
+              <td className="text-start pl-3 fs-5">
+                ${ride.payment.subtotal / 100}
+              </td>
             </tr>
             <tr className="">
               <td className="text-end pr-3 fs-5">

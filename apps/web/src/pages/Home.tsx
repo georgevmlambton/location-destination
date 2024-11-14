@@ -1,9 +1,10 @@
 import { useContext } from 'react';
-import receiptIcon from '../assets/receipt-solid.svg';
+import receiptIcon from '../assets/receipt.svg';
 import personFill from '../assets/person-fill.svg';
 import findOfferRide from '../assets/find-offer-ride.svg';
 import { UserContext } from '../providers/user-provider';
 import { useNavigate } from 'react-router-dom';
+import { NavButton } from '../components/nav/NavButton';
 
 export default function Home() {
   const { profile } = useContext(UserContext);
@@ -11,43 +12,23 @@ export default function Home() {
 
   return (
     <div className="w-100 h-100 d-flex flex-column align-items-center">
-      <div className="p-4 align-self-stretch">
-        <div className="d-flex justify-content-between position-relative">
-          <img
-            className="rounded-circle"
-            src={receiptIcon}
-            alt="Trip History"
-            style={{
-              width: '50px',
-              height: '50px',
-              border: '2px solid #CCCCCC',
-              background: 'white',
-              cursor: 'pointer',
-              position: 'absolute',
-              zIndex: 10,
-              top: '10px',
-              left: '10px',
-            }}
-            onClick={() => navigate('/triphistory')}
-          />
-          <img
-            className="rounded-circle"
-            src={profile?.photoUrl || personFill}
-            alt="Profile Avatar"
-            style={{
-              width: '50px',
-              height: '50px',
-              border: '2px solid #CCCCCC',
-              background: 'white',
-              cursor: 'pointer',
-              position: 'absolute',
-              zIndex: 10,
-              top: '10px',
-              right: '10px',
-            }}
-            onClick={() => navigate('/profile')}
-          />
-        </div>
+      <div className="d-flex justify-content-between position-relative w-100 p-4">
+        <NavButton icon={receiptIcon} onClick={() => navigate('/trips')} />
+        <img
+          className="rounded-circle"
+          src={profile?.photoUrl || personFill}
+          alt="Profile Avatar"
+          style={{
+            width: '42px',
+            height: '42px',
+            border: '2px solid #CCCCCC',
+            background: 'white',
+            cursor: 'pointer',
+            zIndex: 10,
+            boxShadow: 'rgba(0, 0, 0, 0.4) 0px 6px 16px',
+          }}
+          onClick={() => navigate('/profile')}
+        />
       </div>
 
       <div className="p-4 pb-5 position-relative w-100"></div>

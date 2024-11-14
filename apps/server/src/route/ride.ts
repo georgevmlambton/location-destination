@@ -3,10 +3,11 @@ import {
   RideCreateRequest,
   RideResponse,
 } from '@location-destination/types/src/requests/ride';
-import { Ride } from '../db/ride';
+import { IRide, Ride } from '../db/ride';
 import { geocodeAddress } from '../maps';
 import { ValidationError } from 'yup';
 import { IUser, User } from '../db/user';
+import { Types } from 'mongoose';
 
 export const rideRouter = Router();
 
@@ -67,9 +68,11 @@ rideRouter.post('/api/ride', async (req, resp) => {
 
 rideRouter.post('/api/ride/:id/cancel', async (req, resp) => {
   try {
-    const ride = await Ride.findById(req.params.id).populate<{
-      createdBy: IUser;
-    }>('createdBy');
+    const ride = await Ride.findById(req.params.id)
+      .populate<{
+        createdBy: IUser;
+      }>('createdBy')
+      .populate<{ driver: IUser }>('driver');
 
     if (!ride) {
       return resp.status(404).send({ message: 'Ride not found' });
@@ -78,15 +81,7 @@ rideRouter.post('/api/ride/:id/cancel', async (req, resp) => {
     ride.state = 'Cancelled';
     await ride.save();
 
-    const response: RideResponse = {
-      id: ride.id,
-      createdBy: { name: ride.createdBy.name || '' },
-      pickupAddress: ride.pickupAddress,
-      dropoffAddress: ride.dropoffAddress,
-      state: ride.state,
-      passengers: ride.passengers,
-      preferredVehicle: ride.preferredVehicle,
-    };
+    const response: RideResponse = createRideResponse(ride);
 
     resp.send(response);
   } catch (e) {
@@ -114,20 +109,9 @@ rideRouter.get('/api/ride/:id', async (req, resp) => {
       return resp.status(404).send({ message: 'Ride not found' });
     }
 
-    ride.state = 'Cancelled';
     await ride.save();
 
-    const response: RideResponse = {
-      id: ride.id,
-      createdBy: { name: ride.createdBy.name || '' },
-      driver: { name: ride.driver.name || '' },
-      pickupAddress: ride.pickupAddress,
-      dropoffAddress: ride.dropoffAddress,
-      state: ride.state,
-      passengers: ride.passengers,
-      preferredVehicle: ride.preferredVehicle,
-      payment: ride.payment,
-    };
+    const response: RideResponse = createRideResponse(ride);
 
     resp.send(response);
   } catch (e) {
@@ -157,22 +141,35 @@ rideRouter.get('/api/rides', async (req, resp) => {
       .populate<{ createdBy: IUser }>('createdBy')
       .populate<{ driver: IUser }>('driver');
 
-      if (!rides || rides.length === 0) {
-        return resp.status(404).send({ message: 'No rides found for this user' });
-      }
+    if (!rides || rides.length === 0) {
+      return resp.status(404).send({ message: 'No rides found for this user' });
+    }
 
-    const response = rides.map(ride => ({
-      id: ride.id,
-      pickupAddress: ride.pickupAddress,
-      dropoffAddress: ride.dropoffAddress,
-      payment: ride.payment,
-      driver: ride.driver,
-      createdBy: ride.createdBy,
-    }));
-    
+    const response = rides.map((ride) => createRideResponse(ride));
+
     resp.json(response);
   } catch (e) {
     console.error(e);
     resp.status(500).send({ message: 'Internal Server Error' });
   }
 });
+
+export function createRideResponse(
+  ride: Omit<IRide, 'createdBy' | 'driver'> & {
+    _id: Types.ObjectId;
+    createdBy: IUser;
+    driver?: IUser;
+  }
+): RideResponse {
+  return {
+    id: ride._id.toString(),
+    createdBy: { name: ride.createdBy.name || '' },
+    driver: { name: ride.driver?.name || '' },
+    pickupAddress: ride.pickupAddress,
+    dropoffAddress: ride.dropoffAddress,
+    state: ride.state,
+    passengers: ride.passengers,
+    preferredVehicle: ride.preferredVehicle,
+    payment: ride.payment,
+  };
+}
