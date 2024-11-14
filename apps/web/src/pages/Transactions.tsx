@@ -60,6 +60,10 @@ export function Transactions() {
         <b>Transaction History</b>
       </h1>
 
+      {Object.keys(transactions).length === 0 && (
+        <p className="text-center">No transactions</p>
+      )}
+
       {Object.entries(transactions).map(([date, transactions]) => (
         <>
           <h4 className="text-secondary mt-4">{date}</h4>

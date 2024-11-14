@@ -21,6 +21,8 @@ import { Ride } from './pages/Ride';
 import { TripSummary } from './pages/TripSummary';
 import { TripHistory } from './pages/TripHistory';
 import { Transactions } from './pages/Transactions';
+import { PaymentSuccess } from './pages/payment/PaymentSuccess';
+import { PaymentFailed } from './pages/payment/PaymentFailed';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
@@ -86,6 +88,14 @@ const router = createBrowserRouter([
   {
     path: '/transactions',
     element: <AuthenticatedRoute element={<Transactions />} />,
+  },
+  {
+    path: '/payment/success',
+    element: <AuthenticatedRoute element={<PaymentSuccess />} />,
+  },
+  {
+    path: '/payment/failed',
+    element: <AuthenticatedRoute element={<PaymentFailed />} />,
   },
 ]);
 

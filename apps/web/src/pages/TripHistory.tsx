@@ -7,12 +7,14 @@ import { UserContext } from '../providers/user-provider';
 import { getInstance } from '../axios';
 import { RideResponse } from '@location-destination/types/src/requests/ride';
 import { AccountResponse } from '@location-destination/types/src/requests/account';
+import { MakePaymentResponse } from '@location-destination/types/src/requests/transaction';
 
 export function TripHistory() {
   const navigate = useNavigate();
   const user = useContext(UserContext);
   const [trips, setTrips] = useState<RideResponse[]>([]);
   const [account, setAccount] = useState<AccountResponse | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     getInstance().then(async (axios) => {
@@ -25,8 +27,16 @@ export function TripHistory() {
     });
   }, []);
 
+  const makePayment = async () => {
+    setLoading(true);
+    const axios = await getInstance();
+    const response = await axios.post<MakePaymentResponse>('/api/account/pay');
+    const redirectUrl = response.data.redirectUrl;
+    window.location.assign(redirectUrl);
+  };
+
   const handleTripClick = (trip: RideResponse) => {
-    navigate('/ride/summary', { state: { ride: trip } });
+    navigate('/ride/summary', { state: { ride: trip, back: '/trips' } });
   };
 
   return (
@@ -56,7 +66,8 @@ export function TripHistory() {
       {(account?.amount ?? 0) < 0 && (
         <button
           className="btn btn-primary rounded-pill py-2 fs-4 mx-4 mt-4"
-          // onClick={makePayment}
+          onClick={makePayment}
+          disabled={loading}
         >
           Pay
         </button>
@@ -70,9 +81,11 @@ export function TripHistory() {
         className="trip-list"
         style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
       >
+        {trips.length === 0 && <p className="text-center">No trips yet</p>}
         {trips.map((trip) => (
           <div
             key={trip.id}
+            role="button"
             className="trip-item"
             onClick={() => handleTripClick(trip)}
             style={{

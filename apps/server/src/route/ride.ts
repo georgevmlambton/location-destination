@@ -11,7 +11,7 @@ import { Types } from 'mongoose';
 
 export const rideRouter = Router();
 
-rideRouter.post('/api/ride', async (req, resp) => {
+rideRouter.post('/api/rides', async (req, resp) => {
   try {
     const createReq = new RideCreateRequest(req.body);
 
@@ -66,7 +66,7 @@ rideRouter.post('/api/ride', async (req, resp) => {
   }
 });
 
-rideRouter.post('/api/ride/:id/cancel', async (req, resp) => {
+rideRouter.post('/api/rides/:id/cancel', async (req, resp) => {
   try {
     const ride = await Ride.findById(req.params.id)
       .populate<{
@@ -97,7 +97,7 @@ rideRouter.post('/api/ride/:id/cancel', async (req, resp) => {
   }
 });
 
-rideRouter.get('/api/ride/:id', async (req, resp) => {
+rideRouter.get('/api/rides/:id', async (req, resp) => {
   try {
     const ride = await Ride.findById(req.params.id)
       .populate<{

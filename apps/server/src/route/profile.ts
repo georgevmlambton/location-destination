@@ -12,14 +12,14 @@ export const profileRouter = Router();
 profileRouter.get('/api/profile', async (req, resp) => {
   try {
     const user = await User.findOne({ uid: req.user.uid });
-    const redisData = await redis.get('profile-'+user?.uid)
-    if(redisData) {
+    const redisData = await redis.get('profile-' + user?.uid);
+    if (redisData) {
       resp.send(JSON.parse(redisData));
       return;
     }
 
     const profile = createProfileResponse(req.user.uid, user);
-    await redis.set('profile-' + profile.userId, JSON.stringify(profile))
+    await redis.set('profile-' + profile.userId, JSON.stringify(profile));
 
     resp.send(profile);
   } catch (e) {
