@@ -47,6 +47,7 @@ export function RideList() {
   const [showModal, setShowModal] = useState(false);
   const [selectedRide, setSelectedRide] = useState<NearbyRide | null>(null);
   const [sent, setSent] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const ride: RideResponse = location.state.ride;
@@ -74,17 +75,23 @@ export function RideList() {
   }, [confirmRide, socket, ride]);
 
   const handleCancelClick = () => {
+    setLoading(true);
     setShowModal(true);
+    setLoading(false);
   };
 
   const handleYesCancel = async () => {
+    setLoading(true);
     const axios = await getInstance();
     await axios.post(`/api/rides/${ride.id}/cancel`);
     navigate('/find-a-ride');
+    setLoading(false);
   };
 
   const handleCloseModal = () => {
+    setLoading(true);
     setShowModal(false);
+    setLoading(false);
   };
 
   const sendRequest = (ride: NearbyRide) => {
@@ -202,6 +209,7 @@ export function RideList() {
                   display: 'flex',
                   justifyContent: 'space-between',
                   flexDirection: 'column',
+                  opacity: sent.includes(ride.id) ? 0.6 : 1,
                 }}
               >
                 {sent.includes(ride.id) && (

@@ -104,7 +104,7 @@ export function TripHistory() {
             >
               <img
                 src={
-                  user.profile?.type === 'Driver'
+                  user.profile?.userId !== trip.createdBy?.uid
                     ? trip.createdBy?.photoUrl || personFill
                     : trip.driver?.photoUrl || personFill
                 }
@@ -123,7 +123,7 @@ export function TripHistory() {
             </div>
             <div className="trip-fare" style={{ fontWeight: 'bold' }}>
               $
-              {user.profile?.type === 'Driver'
+              {user.profile?.userId !== trip.createdBy?.uid
                 ? (trip.payment && trip.payment.driver / 100) || 'Cancelled'
                 : (trip.payment && trip.payment.total / 100) || 'Cancelled'}
             </div>

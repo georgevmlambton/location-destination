@@ -18,6 +18,7 @@ export function OfferRide() {
   const position = usePosition();
   const socket = useSocket();
   const toast = useContext(ToastContext);
+  const [loading, setLoading] = useState(false);
 
   const [rideRequest, setRideRequest] = useState<{
     ride: RideResponse;
@@ -44,17 +45,22 @@ export function OfferRide() {
     []
   );
 
-  const rejectRide = (ride: RideResponse) => {
-    socket?.emit('rejectRide', ride.id);
+  const rejectRide = async (ride: RideResponse) => {
+    setLoading(true);
+    await socket?.emit('rejectRide', ride.id);
     setRideRequest(null);
+    setLoading(false);
   };
 
-  const cancel = useCallback(() => {
+  const cancel = useCallback(async () => {
+    setLoading(true);
     toast.show('Ride was cancelled', 'danger');
     navigate('/');
+    setLoading(false);
   }, [navigate, toast]);
 
   const confirmRide = async (ride: RideResponse) => {
+    setLoading(true);
     const pickupLocation = await geocode(ride.pickupAddress);
     const dropoffLocation = await geocode(ride.dropoffAddress);
 
@@ -79,12 +85,14 @@ export function OfferRide() {
       ]);
     }
 
-    socket?.emit('confirmRide', ride.id);
+    await socket?.emit('confirmRide', ride.id);
+    setLoading(false);
   };
 
-  const completePickup = () => {
+  const completePickup = async () => {
+    setLoading(true);
     if (ride) {
-      socket?.emit('startRide', ride.ride.id);
+      await socket?.emit('startRide', ride.ride.id);
       setRide({ ...ride, ride: { ...ride.ride, state: 'Started' } });
 
       if (mapRef.current && directions.current && position) {
@@ -100,15 +108,18 @@ export function OfferRide() {
     } else {
       toast.show('No pickup available to complete.', 'danger');
     }
+    setLoading(false);
   };
 
   const dropoff = async () => {
+    setLoading(true);
     if (ride) {
       await socket?.emitWithAck('dropoff', ride.ride.id);
       navigate('/ride/summary', { state: { ride: ride.ride } });
     } else {
       toast.show('No pickup available to complete.', 'danger');
     }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -233,6 +244,7 @@ export function OfferRide() {
               marginTop: '60%',
               zIndex: 1,
             }}
+            disabled={loading}
             onClick={completePickup}
           >
             Complete Pickup
@@ -248,6 +260,7 @@ export function OfferRide() {
               marginTop: '60%',
               zIndex: 1,
             }}
+            disabled={loading}
             onClick={dropoff}
           >
             Complete Drop-off
@@ -261,6 +274,7 @@ export function OfferRide() {
             border: 'none',
             zIndex: 1,
           }}
+          disabled={loading}
           onClick={() => setShowEndDialog(true)}
         >
           End
@@ -284,6 +298,7 @@ export function OfferRide() {
               className="rounded-pill"
               variant="outline-dark"
               onClick={() => setShowEndDialog(false)}
+              disabled={loading}
             >
               Close
             </Button>
@@ -294,6 +309,7 @@ export function OfferRide() {
                 socket?.emit('cancelRide', ride?.ride.id);
                 cancel();
               }}
+              disabled={loading}
             >
               Stop
             </Button>
@@ -325,13 +341,15 @@ export function OfferRide() {
               className="rounded-pill"
               variant="outline-dark"
               onClick={() => rejectRide(rideRequest.ride)}
+              disabled={loading}
             >
-              Cancel
+              Reject
             </Button>
             <Button
               className="rounded-pill"
               variant="success"
               onClick={() => confirmRide(rideRequest.ride)}
+              disabled={loading}
             >
               Confirm
             </Button>

@@ -44,7 +44,7 @@ rideRouter.post('/api/rides', async (req, resp) => {
 
     const response: RideResponse = {
       id: ride.id,
-      createdBy: { name: user.name || '' },
+      createdBy: { name: user.name || '', uid: user.uid },
       pickupAddress: ride.pickupAddress,
       dropoffAddress: ride.dropoffAddress,
       state: ride.state,
@@ -163,7 +163,7 @@ export function createRideResponse(
 ): RideResponse {
   return {
     id: ride._id.toString(),
-    createdBy: { name: ride.createdBy.name || '' },
+    createdBy: { name: ride.createdBy.name || '', uid: ride.createdBy.uid },
     driver: { name: ride.driver?.name || '' },
     pickupAddress: ride.pickupAddress,
     dropoffAddress: ride.dropoffAddress,
