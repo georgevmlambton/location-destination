@@ -8,11 +8,26 @@ import { geocodeAddress } from '../maps';
 import { ValidationError } from 'yup';
 import { IUser, User } from '../db/user';
 import { Types } from 'mongoose';
+import { Account } from '../db/account';
 
 export const rideRouter = Router();
 
 rideRouter.post('/api/rides', async (req, resp) => {
   try {
+    const user = await User.findOne({ uid: req.user.uid });
+
+    if (!user) {
+      return resp.status(400).send({ message: 'Unauthorized' });
+    }
+
+    const account = await Account.findOne({ user: user.id });
+
+    if ((account?.amount ?? 0) < 0) {
+      return resp
+        .status(400)
+        .send({ message: 'Please pay off your balance before booking a ride' });
+    }
+
     const createReq = new RideCreateRequest(req.body);
 
     const pickupLocation = await geocodeAddress(createReq.pickupAddress);
@@ -25,12 +40,6 @@ rideRouter.post('/api/rides', async (req, resp) => {
 
     if (!dropoffLocation) {
       return resp.status(400).send({ message: 'Invalid dropoff address' });
-    }
-
-    const user = await User.findOne({ uid: req.user.uid });
-
-    if (!user) {
-      return resp.status(400).send({ message: 'Unauthorized' });
     }
 
     const ride = await new Ride({
