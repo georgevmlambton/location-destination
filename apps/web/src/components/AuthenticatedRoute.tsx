@@ -1,10 +1,34 @@
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
 import { UserContext } from '../providers/user-provider';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { getInstance } from '../axios';
+import { RideResponse } from '@location-destination/types/src/requests/ride';
 
 export function AuthenticatedRoute({ element }: { element: JSX.Element }) {
   const { user, isProfileSetupDone } = useContext(UserContext);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    getInstance().then(async (axios) => {
+      const response = await axios.get<RideResponse>('/api/rides/active', {
+        validateStatus: () => true,
+      });
+
+      if (response.status !== 200) {
+        return;
+      }
+
+      const ride = response.data;
+
+      if (ride.state === 'Searching') {
+        navigate('/rideList', { state: { ride } });
+        return;
+      }
+
+      navigate('/ride', { state: { ride } });
+    });
+  }, [navigate, user?.uid]);
 
   return !user ? (
     <Navigate to="/sign-in" />
