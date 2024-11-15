@@ -83,7 +83,7 @@ export function RideList() {
   const handleYesCancel = async () => {
     setLoading(true);
     const axios = await getInstance();
-    await axios.post(`/api/ride/${ride.id}/cancel`);
+    await axios.post(`/api/rides/${ride.id}/cancel`);
     navigate('/find-a-ride');
     setLoading(false);
   };

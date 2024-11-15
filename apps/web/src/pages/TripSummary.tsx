@@ -16,7 +16,7 @@ export function TripSummary() {
 
   useEffect(() => {
     getInstance().then(async (axios) => {
-      const response = await axios.get<RideResponse>(`/api/ride/${ride.id}`);
+      const response = await axios.get<RideResponse>(`/api/rides/${ride.id}`);
       setRide(response.data);
     });
   }, [ride.id]);
@@ -24,7 +24,10 @@ export function TripSummary() {
   return (
     <div className="d-flex flex-column align-items-stretch position-relative p-4 h-100 w-100">
       <div className="pb-5 position-relative w-100">
-        <NavButton icon={arrowLeft} onClick={() => navigate('/')} />
+        <NavButton
+          icon={arrowLeft}
+          onClick={() => navigate(location.state.back || '/')}
+        />
       </div>
 
       <h1 className="display-1 mb-5 text-center">
@@ -129,11 +132,15 @@ export function TripSummary() {
               <td className="text-end pr-3 fs-5">
                 Distance (${ride.payment.ratePerKm}/km)
               </td>
-              <td className="text-start pl-3 fs-5">$5</td>
+              <td className="text-start pl-3 fs-5">
+                ${ride.payment.distanceFare / 100}
+              </td>
             </tr>
             <tr className="">
               <td className="text-end pr-3 fs-5">Subtotal</td>
-              <td className="text-start pl-3 fs-5">${ride.payment.subtotal}</td>
+              <td className="text-start pl-3 fs-5">
+                ${ride.payment.subtotal / 100}
+              </td>
             </tr>
             <tr className="">
               <td className="text-end pr-3 fs-5">

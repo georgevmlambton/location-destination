@@ -21,7 +21,7 @@ export function NavButton({
         height: '42px',
       }}
     >
-      <img src={icon} />
+      <img className="w-100" src={icon} />
     </button>
   );
 }

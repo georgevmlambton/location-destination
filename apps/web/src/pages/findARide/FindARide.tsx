@@ -33,7 +33,7 @@ export function FindARide() {
         passengers,
       };
       const axios = await getInstance();
-      const response = await axios.post<RideResponse>('/api/ride', req);
+      const response = await axios.post<RideResponse>('/api/rides', req);
       console.log(response.data.id);
 
       navigate('/rideList', {
