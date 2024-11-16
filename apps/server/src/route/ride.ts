@@ -12,8 +12,24 @@ import { Account } from '../db/account';
 
 export const rideRouter = Router();
 
+rideRouter.get('/api/rides/active', async (req, resp) => {
+  const activeRide = await findActiveRide(req.user.uid);
+
+  if (activeRide) {
+    return resp.send(createRideResponse(activeRide));
+  }
+
+  return resp.status(404).send({ message: 'No active rides' });
+});
+
 rideRouter.post('/api/rides', async (req, resp) => {
   try {
+    if (await findActiveRide(req.user.uid)) {
+      return resp
+        .status(409)
+        .send({ message: 'You already have an active ride' });
+    }
+
     const user = await User.findOne({ uid: req.user.uid });
 
     if (!user) {
@@ -162,6 +178,27 @@ rideRouter.get('/api/rides', async (req, resp) => {
     resp.status(500).send({ message: 'Internal Server Error' });
   }
 });
+
+async function findActiveRide(uid: string) {
+  const user = await User.findOne({ uid });
+
+  if (user) {
+    const activeRide = await Ride.findOne({
+      createdBy: user.id,
+      state: { $nin: ['Cancelled', 'Completed'] },
+    })
+      .populate<{
+        createdBy: IUser;
+      }>('createdBy')
+      .populate<{ driver: IUser }>('driver');
+
+    if (activeRide) {
+      return activeRide;
+    }
+  }
+
+  return null;
+}
 
 export function createRideResponse(
   ride: Omit<IRide, 'createdBy' | 'driver'> & {

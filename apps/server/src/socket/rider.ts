@@ -101,13 +101,13 @@ export const onRide = (socket: Socket) => async (rideId: string) => {
 
   const sendCancelRide = async () => {
     ride.state = 'Cancelled';
-    await ride.save();
+    await Ride.findByIdAndUpdate(ride.id, { state: 'Cancelled' });
     socket.emit('cancelRide');
   };
 
   const endRide = async () => {
     ride.state = 'Completed';
-    await ride.save();
+    await Ride.findByIdAndUpdate(ride.id, { state: 'Completed' });
     socket.emit('endRide');
   };
 
@@ -117,8 +117,9 @@ export const onRide = (socket: Socket) => async (rideId: string) => {
 
   redisEvents.subscribe(`endRide:${rideId}`, endRide);
 
-  socket.on('cancelRide', () => {
+  socket.on('cancelRide', async () => {
     redisEvents.unsubscribe(`cancelRide:${rideId}`, sendCancelRide);
+    await Ride.findByIdAndUpdate(ride.id, { state: 'Cancelled' });
     redis.publish(`cancelRide:${rideId}`, '');
   });
 
