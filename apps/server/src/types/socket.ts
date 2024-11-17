@@ -29,6 +29,7 @@ export type ServerToClientEvents = {
   cancelRide: () => void;
   endRide: () => void;
   startRide: (ride: RideResponse) => void;
+  rideReserved: () => void;
 };
 
 export type SocketData = {

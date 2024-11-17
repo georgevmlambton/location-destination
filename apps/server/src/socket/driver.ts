@@ -23,12 +23,17 @@ export const onOfferRide =
       (rideId: string) => onRequestRide(socket, rideId)
     );
 
+    redisEvents.subscribe('rideReserved', (message) => {
+      socket.emit('rideReserved');
+    });
+
     socket.on('rejectRide', async (rideId) => {
       await redis.sAdd(`rejectedRides:${rideId}`, socket.data.user.uid);
       redis.publish('driverLocationUpdate', '');
     });
 
     socket.on('confirmRide', (rideId) => {
+      redis.publish('rideReserved', 'Ride no longer available');
       redisEvents.subscribe(`cancelRide:${rideId}`, sendCancelRide);
       redis.publish(`confirmRide:${rideId}`, socket.data.user.uid);
 

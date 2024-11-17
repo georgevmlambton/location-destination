@@ -167,6 +167,9 @@ export function OfferRide() {
 
       socket.on('requestRide', onRequestRide);
       socket.on('cancelRide', cancel);
+      socket.on('rideReserved', () => {
+        setRideRequest(null);
+      });
     }
 
     if (mapRef.current && position) {
