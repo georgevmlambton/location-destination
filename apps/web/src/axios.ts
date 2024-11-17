@@ -5,7 +5,7 @@ export async function getInstance() {
   const token = await auth.currentUser?.getIdToken();
 
   if (!token) {
-    auth.signOut().then(() => location.assign('/login'));
+    auth.signOut().then(() => location.assign('/sign-in'));
   }
 
   const instance = axios.create({
@@ -17,7 +17,7 @@ export async function getInstance() {
 
   instance.interceptors.response.use((response) => {
     if (response.status === 401) {
-      auth.signOut().then(() => location.assign('/login'));
+      auth.signOut().then(() => location.assign('/sign-in'));
     }
 
     return response;

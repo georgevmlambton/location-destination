@@ -290,6 +290,7 @@ export function RideList() {
               className="rounded-pill"
               variant="outline-dark"
               onClick={handleCloseModal}
+              disabled={loading}
             >
               Close
             </Button>
@@ -297,6 +298,7 @@ export function RideList() {
               className="rounded-pill"
               variant="danger"
               onClick={handleYesCancel}
+              disabled={loading}
             >
               Yes, Cancel
             </Button>

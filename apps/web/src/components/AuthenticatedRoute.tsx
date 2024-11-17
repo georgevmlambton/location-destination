@@ -10,6 +10,10 @@ export function AuthenticatedRoute({ element }: { element: JSX.Element }) {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!user) {
+      return;
+    }
+
     getInstance().then(async (axios) => {
       const response = await axios.get<RideResponse>('/api/rides/active', {
         validateStatus: () => true,
@@ -28,7 +32,7 @@ export function AuthenticatedRoute({ element }: { element: JSX.Element }) {
 
       navigate('/ride', { state: { ride } });
     });
-  }, [navigate, user?.uid]);
+  }, [navigate, user]);
 
   return !user ? (
     <Navigate to="/sign-in" />
