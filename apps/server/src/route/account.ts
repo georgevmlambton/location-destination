@@ -5,7 +5,7 @@ import { AccountResponse } from '@location-destination/types/src/requests/accoun
 
 export const accountRouter = Router();
 
-accountRouter.get('/api/account', async (req: Request, resp: Response) => {
+accountRouter.get('/account', async (req: Request, resp: Response) => {
   const user = await User.findOne({ uid: req.user.uid });
 
   if (!user) {

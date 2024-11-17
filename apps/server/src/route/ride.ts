@@ -12,7 +12,7 @@ import { Account } from '../db/account';
 
 export const rideRouter = Router();
 
-rideRouter.get('/api/rides/active', async (req, resp) => {
+rideRouter.get('/rides/active', async (req, resp) => {
   const activeRide = await findActiveRide(req.user.uid);
 
   if (activeRide) {
@@ -22,7 +22,7 @@ rideRouter.get('/api/rides/active', async (req, resp) => {
   return resp.status(404).send({ message: 'No active rides' });
 });
 
-rideRouter.post('/api/rides', async (req, resp) => {
+rideRouter.post('/rides', async (req, resp) => {
   try {
     if (await findActiveRide(req.user.uid)) {
       return resp
@@ -91,7 +91,7 @@ rideRouter.post('/api/rides', async (req, resp) => {
   }
 });
 
-rideRouter.post('/api/rides/:id/cancel', async (req, resp) => {
+rideRouter.post('/rides/:id/cancel', async (req, resp) => {
   try {
     const ride = await Ride.findById(req.params.id)
       .populate<{
@@ -122,7 +122,7 @@ rideRouter.post('/api/rides/:id/cancel', async (req, resp) => {
   }
 });
 
-rideRouter.get('/api/rides/:id', async (req, resp) => {
+rideRouter.get('/rides/:id', async (req, resp) => {
   try {
     const ride = await Ride.findById(req.params.id)
       .populate<{
@@ -152,7 +152,7 @@ rideRouter.get('/api/rides/:id', async (req, resp) => {
   }
 });
 
-rideRouter.get('/api/rides', async (req, resp) => {
+rideRouter.get('/rides', async (req, resp) => {
   try {
     const user = await User.findOne({ uid: req.user.uid });
 
