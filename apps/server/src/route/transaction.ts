@@ -17,7 +17,7 @@ const stripe = new Stripe(config.stripeKey);
 export const transactionRouter = Router();
 
 transactionRouter.get(
-  '/api/account/transactions',
+  '/account/transactions',
   async (req: Request, resp: Response) => {
     const user = await User.findOne({ uid: req.user.uid });
 
@@ -53,64 +53,61 @@ transactionRouter.get(
   }
 );
 
-transactionRouter.post(
-  '/api/account/pay',
-  async (req: Request, resp: Response) => {
-    const user = await User.findOne({ uid: req.user.uid }).orFail();
-    const account = await Account.findOne({ user: user.id });
-    const balance = account?.amount ?? 0;
+transactionRouter.post('/account/pay', async (req: Request, resp: Response) => {
+  const user = await User.findOne({ uid: req.user.uid }).orFail();
+  const account = await Account.findOne({ user: user.id });
+  const balance = account?.amount ?? 0;
 
-    if (balance >= 0) {
-      return resp.status(400).send({
-        message: "You don't have an outstanding negative balance to clear",
-      });
-    }
-
-    const transaction = await new Transaction({
-      createdAt: new Date(),
-      user: user.id,
-      amount: Math.abs(balance),
-      type: 'credit',
-      paymentStatus: 'Unpaid',
-    }).save();
-
-    const session = await stripe.checkout.sessions.create({
-      line_items: [
-        {
-          price_data: {
-            currency: 'CAD',
-            unit_amount: transaction.amount,
-            product_data: {
-              name: 'Clear balance',
-              description: 'Payment to clear account balance',
-            },
-          },
-          quantity: 1,
-        },
-      ],
-      mode: 'payment',
-      success_url: `${config.frontendUrl}/payment/success?transactionId=${transaction.id}`,
-      cancel_url: `${config.frontendUrl}/payment/failed`,
+  if (balance >= 0) {
+    return resp.status(400).send({
+      message: "You don't have an outstanding negative balance to clear",
     });
-
-    if (!session.url) {
-      resp.status(500).send({ message: 'Failed to redirect' });
-      return;
-    }
-
-    transaction.paymentId = session.id;
-    await transaction.save();
-
-    const response: MakePaymentResponse = {
-      redirectUrl: session.url,
-    };
-
-    resp.send(response);
   }
-);
+
+  const transaction = await new Transaction({
+    createdAt: new Date(),
+    user: user.id,
+    amount: Math.abs(balance),
+    type: 'credit',
+    paymentStatus: 'Unpaid',
+  }).save();
+
+  const session = await stripe.checkout.sessions.create({
+    line_items: [
+      {
+        price_data: {
+          currency: 'CAD',
+          unit_amount: transaction.amount,
+          product_data: {
+            name: 'Clear balance',
+            description: 'Payment to clear account balance',
+          },
+        },
+        quantity: 1,
+      },
+    ],
+    mode: 'payment',
+    success_url: `${config.frontendUrl}/payment/success?transactionId=${transaction.id}`,
+    cancel_url: `${config.frontendUrl}/payment/failed`,
+  });
+
+  if (!session.url) {
+    resp.status(500).send({ message: 'Failed to redirect' });
+    return;
+  }
+
+  transaction.paymentId = session.id;
+  await transaction.save();
+
+  const response: MakePaymentResponse = {
+    redirectUrl: session.url,
+  };
+
+  resp.send(response);
+});
 
 transactionRouter.get(
-  '/api/account/transactions/:transactionId',
+  '/account/transactions/:transactionId',
   async (req: Request, resp: Response) => {
     const transactionId = req.params.transactionId;
 

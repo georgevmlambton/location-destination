@@ -9,7 +9,7 @@ import { redis } from '../redis';
 
 export const profileRouter = Router();
 
-profileRouter.get('/api/profile', async (req, resp) => {
+profileRouter.get('/profile', async (req, resp) => {
   try {
     const user = await User.findOne({ uid: req.user.uid });
     const redisData = await redis.get('profile-' + user?.uid);
@@ -28,7 +28,7 @@ profileRouter.get('/api/profile', async (req, resp) => {
   }
 });
 
-profileRouter.patch('/api/profile', async (req, resp) => {
+profileRouter.patch('/profile', async (req, resp) => {
   try {
     const patch = new ProfilePatchRequest(req.body);
 
