@@ -3,7 +3,7 @@ name: Publish
 on:
   push:
     branches:
-      - ci-cd
+      - master
 
 jobs:
   publish:
@@ -32,3 +32,13 @@ jobs:
             VITE_FIREBASE_CONFIG=${{ secrets.VITE_FIREBASE_CONFIG }}
             VITE_API_URL=${{ secrets.VITE_API_URL }}
             VITE_MAPBOX_TOKEN=${{ secrets.VITE_MAPBOX_TOKEN }}
+
+      - id: deploy
+        name: Deploy
+        run: |
+          curl --location '${{ secrets.DEPLOY_URL }}' \
+            --header 'Accept: application/vnd.github+json' \
+            --header 'X-GitHub-Api-Version: 2022-11-28' \
+            --header 'Content-Type: application/json' \
+            --header 'Authorization: ${{ secrets.DEPLOY_AUTH }}' \
+            --data '${{ secrets.DEPLOY_PAYLOAD }}'
