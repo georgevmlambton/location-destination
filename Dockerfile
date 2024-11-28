@@ -29,4 +29,6 @@ RUN npm run -w apps/server build
 RUN cp -R apps/web/dist apps/server/public
 RUN cp -R apps/web/public apps/server/public
 
+EXPOSE 8080
+
 CMD ["npm", "run", "-w", "apps/server", "start:prod"]

@@ -37,6 +37,7 @@ const validationSchema = yup.object({
     .number()
     .typeError('Must be a valid year')
     .min(1900, 'Must be greater than 1900')
+    .max(new Date().getFullYear() + 1, 'Must be a valid year')
     .when('type', {
       is: (type: string) => type === 'Driver' || type === 'Both',
       then: (schmea) => schmea.required('Required field'),
@@ -45,10 +46,13 @@ const validationSchema = yup.object({
     is: (type: string) => type === 'Driver' || type === 'Both',
     then: (schmea) => schmea.required('Required field'),
   }),
-  vehicleLicensePlate: yup.string().when('type', {
-    is: (type: string) => type === 'Driver' || type === 'Both',
-    then: (schmea) => schmea.required('Required field'),
-  }),
+  vehicleLicensePlate: yup
+    .string()
+    .when('type', {
+      is: (type: string) => type === 'Driver' || type === 'Both',
+      then: (schmea) => schmea.required('Required field'),
+    })
+    .max(10, 'Too long'),
   capacity: yup.number().min(1, 'Must be greater than 0'),
   vehicleType: yup
     .mixed<'Electric' | 'Gas' | 'Hybrid'>()
@@ -278,36 +282,36 @@ export function Profile() {
                     label="Vehicle Details"
                     required
                   >
+                    <p className="mt-2 mb-0 ms-2">Make</p>
                     <TextField
-                      className="mt-3"
                       placeholder="Make"
                       touched={touched}
                       errors={errors}
                       name="vehicleMake"
                     />
+                    <p className="mt-2 mb-0 ms-2">Model</p>
                     <TextField
-                      className="mt-3"
                       placeholder="Model"
                       touched={touched}
                       errors={errors}
                       name="vehicleModel"
                     />
+                    <p className="mt-2 mb-0 ms-2">Year</p>
                     <TextField
-                      className="mt-3"
                       placeholder="Year"
                       touched={touched}
                       errors={errors}
                       name="vehicleYear"
                     />
+                    <p className="mt-2 mb-0 ms-2">Color</p>
                     <TextField
-                      className="mt-3"
                       placeholder="Color"
                       touched={touched}
                       errors={errors}
                       name="vehicleColor"
                     />
+                    <p className="mt-2 mb-0 ms-2">License Plate</p>
                     <TextField
-                      className="mt-3"
                       placeholder="License Plate"
                       touched={touched}
                       errors={errors}
@@ -327,7 +331,7 @@ export function Profile() {
                       options={['Electric', 'Gas', 'Hybrid']}
                     />
                   </ProfileField>
-                  
+
                   <ProfileField
                     className="mt-4"
                     errors={errors}
@@ -373,7 +377,7 @@ export function Profile() {
                           onClick={() =>
                             setFieldValue(
                               'vehicleCapacity',
-                              values.vehicleCapacity + 1
+                              Math.min(values.vehicleCapacity + 1, 25)
                             )
                           }
                         >

@@ -87,7 +87,7 @@ rideRouter.post('/rides', async (req, resp) => {
         .send({ message: 'Validation Errors: ' + e.errors.join(', ') });
     }
 
-    resp.status(500).send({ message: 'Internal Server Error' });
+    resp.status(500).send({ message: e.message });
   }
 });
 

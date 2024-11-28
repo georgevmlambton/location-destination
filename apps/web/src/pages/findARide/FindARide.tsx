@@ -178,7 +178,10 @@ export function FindARide() {
                         zIndex: 10,
                       }}
                       onClick={() =>
-                        setFieldValue('passengers', values.passengers + 1)
+                        setFieldValue(
+                          'passengers',
+                          Math.min(values.passengers + 1, 25)
+                        )
                       }
                     >
                       +

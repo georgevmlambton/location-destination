@@ -23,6 +23,12 @@ export async function geocodeAddress(address: string) {
     return null;
   }
 
+  const country = body.features[0].properties?.context?.country?.country_code;
+
+  if (country !== 'CA') {
+    throw new Error('Address must be in Canada');
+  }
+
   const location = {
     lat: body.features[0].geometry.coordinates[1],
     lng: body.features[0].geometry.coordinates[0],
